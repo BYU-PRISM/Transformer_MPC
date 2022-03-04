@@ -42,19 +42,26 @@ class Mpc:
         sp_hat = np.zeros(self.P)
         se = np.zeros(self.P)
         self.y_hat0 = yp
+
+        yp_hat[0] = self.y_hat0
+
+        # dt0 = (self.P*self.dt)**(1/self.P)
+        # t = np.array([dt0**(i+1) for i in range(self.P)])
+        # dt = [[t[i], t[i-1]] for i in range(len(t))]
+
         # Prediction
-        for k in range(0, self.P):
+        for k in range(0, self.P-1):
                 
             y_hat = odeint(mpc_model,self.y_hat0,[0,self.dt],args=(u_hat[k],self.K,self.tau))
             self.y_hat0 = y_hat[-1]
-            yp_hat[k] = y_hat[0]
+            yp_hat[k+1] = y_hat[-1]
 
             # Squared Error calculation
             sp_hat[k] = sp
             delta_u_hat = np.zeros(self.P)        
 
             delta_u_hat[k] = u_hat[k]-u_hat[k-1] 
-            se[k] = (sp_hat[k]-yp_hat[k])**2 + 50 * (delta_u_hat[k])**2
+            se[k] = (sp_hat[k]-yp_hat[k])**2 + 10 * (delta_u_hat[k])**2
             # print('k=', k)
 
         # Sum of Squared Error calculation       

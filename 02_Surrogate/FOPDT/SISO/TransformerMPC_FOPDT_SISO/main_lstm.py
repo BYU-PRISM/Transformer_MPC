@@ -5,20 +5,21 @@ from mpc_fopdt import Mpc
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from scipy.integrate import odeint
+# from scipy.integrate import odeint
+import 
 from scipy.optimize import minimize
 
 # FOPDT Parameters
-K=1.0      # gain
-tau=2.0    # time constant
+K=3.0      # gain
+tau=5.0    # time constant
 ns = 100    # Simulation Length
 t = np.linspace(0,ns,ns+1)
 delta_t = t[1]-t[0]
 
 
 # Define horizons
-P = 10 # Prediction Horizon
-M = 4  # Control Horizon
+P = 12 # Prediction Horizon
+M = 5  # Control Horizon
 
 # Input Sequence
 u = np.zeros(ns+1)
@@ -28,7 +29,7 @@ u = np.zeros(ns+1)
 
 sp = np.zeros(ns+1)
 sp[10:40] = 2
-sp[40:80] = 5
+sp[40:80] = 10
 sp[80:] = 3
 # Controller setting
 maxmove = 1
@@ -64,7 +65,7 @@ for i in range(1,ns):
 
     
 
-plt.plot(t, yp)
+plt.step(t, yp)
 plt.step(t, u)
 plt.step(t, sp)
 plt.show()
