@@ -44,9 +44,9 @@ model_lstm_multi = load_model('MPC_surrogate_SISO_FOPDT_multistep_LSTM.h5')
 
 
 # FOPDT Parameters
-K=3.0      # gain
-tau=5.0    # time constant
-ns = 20    # Simulation Length
+K=1.0      # gain
+tau=2.0    # time constant
+ns = 100    # Simulation Length
 t = np.linspace(0,ns,ns+1)
 delta_t = t[1]-t[0]
 
@@ -64,8 +64,8 @@ u = np.zeros(ns+1)
 
 sp = np.zeros(ns+1)
 sp[10:40] = 2
-sp[40:80] = 10
-sp[80:] = 3
+sp[40:80] = 1
+sp[80:] = 1.5
 # Controller setting
 maxmove = 1
 
