@@ -1,4 +1,4 @@
-from siso_fopdt import *
+from process_fopdt import *
 from mpc_fopdt import Mpc
 
 
@@ -36,7 +36,6 @@ maxmove = 1
 ## Process simulation 
 yp = np.zeros(ns+1)
 
-
 p = ProcessModel(K, tau, delta_t)
 m = Mpc(P, M, K, tau, delta_t)
 
@@ -58,11 +57,6 @@ for i in range(1,ns):
         else:
             u[i+1] = u[i]-maxmove
 
-    # else:
-    #     u[i+1] = u[i]+delta[0]   
-
-
-    
 
 plt.plot(t, yp)
 plt.step(t, u)
@@ -70,8 +64,6 @@ plt.step(t, sp)
 plt.show()
  
 
-
-print(yp[7:13], u[7:13], sp[7:13])
 
 
 

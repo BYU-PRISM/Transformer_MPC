@@ -1,21 +1,18 @@
-from siso_fopdt import *
+from process_fopdt import *
 from mpc_lstm import Mpc
-
-
-import os
-
-path = os.path.dirname(os.path.realpath(__file__))
 
 import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
+# from plotly.subplots import make_subplots
+# import plotly.graph_objects as go
 
 from pickle import dump, load
 from sklearn.preprocessing import MinMaxScaler
 import time
+
+path = '../'
 
 # For LSTM model
 import tensorflow as tf
@@ -26,22 +23,19 @@ from keras.layers import Dropout
 from keras.callbacks import EarlyStopping
 from keras.models import load_model
 
-
-# path = './'
 # Load NN model parameters and MinMaxScaler
-model_params = load(open('model_param.pkl', 'rb'))
+model_params = load(open(path +'model_param.pkl', 'rb'))
 s1 = model_params['Xscale']
 s2 = model_params['yscale']
 window = model_params['window']
 
 # Load NN models (onestep prediction models)
-model_lstm = load_model('MPC_surrogate_SISO_FOPDT_LSTM.h5')
-# model_trans = load_model('MPC_surrogate_SISO_FOPDT_Transformer.h5')
+model_lstm = load_model(path +'MPC_SISO_FOPDT_onestep_LSTM.h5')
+# model_trans = load_model(path +'MPC_SISO_FOPDT_onestep_Trans.h5')
 
 # Load NN models (multistep prediction models)
-model_lstm_multi = load_model('MPC_surrogate_SISO_FOPDT_multistep_LSTM.h5')
-# model_trans_multi = load_model('MPC_surrogate_SISO_FOPDT_multistep_Transformer.h5')
-
+model_lstm_multi = load_model(path +'MPC_SISO_FOPDT_multistep_LSTM.h5')
+# model_trans_multi = load_model(path +'MPC_SISO_FOPDT_multistep_Trans.h5')
 
 # FOPDT Parameters
 K=1.0      # gain
@@ -54,7 +48,6 @@ delta_t = t[1]-t[0]
 # Define horizons
 P = 10 # Prediction Horizon
 M = 4  # Control Horizon
-
 
 # Input Sequence
 u = np.zeros(ns+1)
@@ -72,20 +65,17 @@ maxmove = 1
 ## Process simulation 
 yp = np.zeros(ns+1)
 
-
 p = ProcessModel(K, tau, delta_t)
 m = Mpc(window, P, M, s1, s2, multistep=1, model=model_lstm, model_multi=model_lstm_multi)
+# multistep = 0 : sequential onestep prediction MPC
+# multistep = 1 : simultaneous multistep prediction MPC
 
 uhat = np.zeros(M)
 for i in range(1, window):
     yp[i] = p.run(u[i-1])
 
-
-
-
 u_window = u[0:window]
 y_window = yp[0:window]
-# SP_window = sp[0:window]
 
 for i in range(window,ns):
     print(i)
@@ -106,22 +96,14 @@ for i in range(window,ns):
 
     u_window = u[i-window+1:i+1]
     y_window = yp[i-window+1:i+1]
-    # SP_window = sp[i-window+1:i+1]    
-
-    # else:
-    #     u[i+1] = u[i]+delta[0]   
-
 
     
-
-plt.step(t, yp)
+plt.plot(t, yp)
 plt.step(t, u)
 plt.step(t, sp)
 plt.show()
  
 
-
-print(yp[7:13], u[7:13], sp[7:13])
 
 
 
