@@ -5,7 +5,6 @@ from scipy.integrate import odeint
 from scipy.optimize import minimize
 
 
-
 # Define MPC model (SISO FOPDT, same as process model in this case)
 def mpc_model(y,t,u,K,tau):
     # arguments
@@ -81,11 +80,6 @@ class Mpc:
 
         end = time.time()
         elapsed = end - start
-
-        
-
-          
-
 
         return u
 

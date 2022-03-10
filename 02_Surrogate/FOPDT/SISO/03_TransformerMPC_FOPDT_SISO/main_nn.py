@@ -1,5 +1,5 @@
 from process_fopdt import *
-from mpc_lstm import Mpc
+from mpc_nn import Mpc_nn
 
 import numpy as np
 import pandas as pd
@@ -30,12 +30,12 @@ s2 = model_params['yscale']
 window = model_params['window']
 
 # Load NN models (onestep prediction models)
-model_lstm = load_model(path +'MPC_SISO_FOPDT_onestep_LSTM.h5')
-# model_trans = load_model(path +'MPC_SISO_FOPDT_onestep_Trans.h5')
+model_lstm_one = load_model(path +'MPC_SISO_FOPDT_onestep_LSTM.h5')
+model_trans_one = load_model(path +'MPC_SISO_FOPDT_onestep_Trans.h5')
 
 # Load NN models (multistep prediction models)
 model_lstm_multi = load_model(path +'MPC_SISO_FOPDT_multistep_LSTM.h5')
-# model_trans_multi = load_model(path +'MPC_SISO_FOPDT_multistep_Trans.h5')
+model_trans_multi = load_model(path +'MPC_SISO_FOPDT_multistep_Trans.h5')
 
 # FOPDT Parameters
 K=1.0      # gain
@@ -66,7 +66,7 @@ maxmove = 1
 yp = np.zeros(ns+1)
 
 p = ProcessModel(K, tau, delta_t)
-m = Mpc(window, P, M, s1, s2, multistep=1, model=model_lstm, model_multi=model_lstm_multi)
+m = Mpc_nn(window, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
 # multistep = 0 : sequential onestep prediction MPC
 # multistep = 1 : simultaneous multistep prediction MPC
 
@@ -103,7 +103,4 @@ plt.step(t, u)
 plt.step(t, sp)
 plt.show()
  
-
-
-
 

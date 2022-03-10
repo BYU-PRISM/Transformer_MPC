@@ -1,38 +1,22 @@
 import numpy as np
-# import matplotlib.pyplot as plt
 import time
 from scipy.integrate import odeint
 from scipy.optimize import minimize
 
-# For LSTM model
-import tensorflow as tf
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import LSTM
-from keras.layers import Dropout
-from keras.callbacks import EarlyStopping
-from keras.models import load_model
-# from tqdm.keras import TqdmCallback
 
-
-class Mpc:
-    def __init__(self, window, P, M, s1, s2, multistep=False, model=None, model_multi=None):
+class Mpc_nn:
+    def __init__(self, window, P, M, s1, s2, multistep=False, model_one=None, model_multi=None):
         self.y_hat0 = 0
         self.window = window
         self.P = P
         self.M = M
         self.multistep = multistep
-        self.model_lstm = model
-        self.model_lstm_multi = model_multi
+        self.model_one = model_one
+        self.model_multi = model_multi
         self.s1 = s1 
         self.s2 = s2
         
-
-
-        # self.yp = yp
-        # self.sp = sp
-
-    def MPCobj_lstm(self, u_hat, u_window, y_window, sp):
+    def MPCobj_nn(self, u_hat, u_window, y_window, sp):
         # future u values after the control horizon
         u_hat_P = np.ones(self.P-self.M) * u_hat[-1]
         u_all = np.concatenate((u_window, u_hat, u_hat_P),axis=None)
@@ -42,16 +26,13 @@ class Mpc:
 
         SP_hat = np.ones(self.P) * sp
 
-        # X = pd.DataFrame({'u': u_all, 'y':y_all})
-        # Y = pd.DataFrame({'y': y_all})
-
         X = np.transpose([u_all,y_all]) 
         Y = np.transpose([y_all])
-        SP_trans = np.transpose([SP_hat])
+        SP_t = np.transpose([SP_hat])
 
         Xs = self.s1.transform(X)
         Ys = self.s2.transform(Y)
-        SPs = self.s2.transform(SP_trans)
+        SPs = self.s2.transform(SP_t)
 
         # Appending the window (past) and Prediction (future) arrays
         Xsq = Xs.copy()
@@ -61,15 +42,15 @@ class Mpc:
             # SPsq = np.reshape(SP_pred, (P,Ys.shape[1]))
             for i in range(self.window,len(Xsq)):
                 Xin = Xsq[i-self.window:i].reshape((1, self.window, np.shape(Xsq)[1]))
-                # LSTM prediction
-                Xsq[i][(Xs.shape[1] - Ys.shape[1]):] = self.model_lstm(Xin) 
+                # LSTM or Transformer prediction
+                Xsq[i][(Xs.shape[1] - Ys.shape[1]):] = self.model_one(Xin) 
                 # (Xs.shape[1]-Ys.shape[1]) indicates the index of the 
-                # first 'system' output variable in the 'LSTM' input array
+                # first 'system' output variable in the 'LSTM (Transformer)' input array
                 Ysq[i] = Xsq[i][(Xs.shape[1] - Ys.shape[1]):]
         
         else:
             Xin = Xsq.reshape((1, self.window+self.P, np.shape(Xsq)[1]))
-            Ysq = self.model_lstm_multi(Xin)
+            Ysq = self.model_multi(Xin)
 
 
         Ytu = self.s2.inverse_transform(Ysq)
@@ -78,18 +59,18 @@ class Mpc:
         u_hat0 = np.append(u_window[-1], u_hat)
 
 
-        pred_lstm = {}
+        pred_nn = {}
         if self.multistep == 0:
-            pred_lstm["y_hat"] = np.reshape(Ytu[self.window:], (1,self.P))[0]
-            pred_lstm["u_hat"] = np.reshape(Xtu[self.window:,0], (1,self.P))[0]
+            pred_nn["y_hat"] = np.reshape(Ytu[self.window:], (1,self.P))[0]
+            pred_nn["u_hat"] = np.reshape(Xtu[self.window:,0], (1,self.P))[0]
 
-            Obj = 10*np.sum((pred_lstm["y_hat"] - SP_hat)**2) + np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
+            Obj = 10*np.sum((pred_nn["y_hat"] - SP_hat)**2) + np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
 
         else:
-            pred_lstm["y_hat_multi"] = Ytu[0]
-            pred_lstm["u_hat_multi"] = Xtu[self.window:,0]
+            pred_nn["y_hat_multi"] = Ytu[0]
+            pred_nn["u_hat_multi"] = Xtu[self.window:,0]
             
-            Obj = 10*np.sum((pred_lstm["y_hat_multi"] - SP_hat)**2) + np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
+            Obj = 10*np.sum((pred_nn["y_hat_multi"] - SP_hat)**2) + np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
 
         return Obj
     
@@ -103,17 +84,12 @@ class Mpc:
         start = time.time()
 
         # solution = minimize(self.objective,ui,method='SLSQP', args=(yp,sp))
-        solution = minimize(self.MPCobj_lstm, uhat, method='SLSQP',args=(u_window, y_window, sp),options={'eps': 1e-06, 'ftol': 1e-01})
+        solution = minimize(self.MPCobj_nn, uhat, method='SLSQP',args=(u_window, y_window, sp),options={'eps': 1e-06, 'ftol': 1e-01})
         u = solution.x  
 
         end = time.time()
         elapsed = end - start
         print(elapsed)
-
-        
-
-          
-
 
         return u
 
