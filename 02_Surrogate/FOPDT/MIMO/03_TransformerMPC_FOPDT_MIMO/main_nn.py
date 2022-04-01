@@ -40,7 +40,7 @@ model_trans_multi = load_model(path +'MPC_MIMO_FOPDT_multistep_Trans.h5')
 # # FOPDT Parameters
 # K=1.0      # gain
 # tau=2.0    # time constant
-ns = 20    # Simulation Length
+ns = 10    # Simulation Length
 t = np.linspace(0,ns,ns+1)
 delta_t = t[1]-t[0]
 
@@ -59,12 +59,12 @@ u = np.zeros((ns+1,nu))
 # Setpoint Sequence
 
 sp1 = np.zeros(ns+1)
-sp1[10:40] = 2
+sp1[6:40] = 2
 sp1[40:] = 1
 # sp1[80:] = 1.5
 
 sp2 = np.zeros(ns+1)
-sp2[10:40] = 1
+sp2[6:40] = 1
 sp2[60:] = 2
 # sp2[80:] = 1.5
 

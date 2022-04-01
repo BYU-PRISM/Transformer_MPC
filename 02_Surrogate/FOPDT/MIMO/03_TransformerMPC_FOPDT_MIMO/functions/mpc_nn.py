@@ -61,15 +61,15 @@ class Mpc_nn:
         Ytu = self.s2.inverse_transform(Ysq)
         Xtu = self.s1.inverse_transform(Xsq)
 
-        u_hat0 = np.append(u_window[-1], u_hat)
-
-        u_hat = u_hat.flatten()
+        u_hat0 = np.append(u_window[-1], u_hat) # prepare for 'rate of change of MV' in the objective function
+        u_hat0 = u_hat0.reshape((-1,self.nu))
+        # u_hat = u_hat.flatten()
 
 
         pred_nn = {}
         if self.multistep == 0:
-            pred_nn["y_hat"] = np.reshape(Ytu[self.window:], (self.P, self.ny))[0]
-            pred_nn["u_hat"] = np.reshape(Xtu[self.window:,0:self.nu], (self.P, self.nu))[0]
+            pred_nn["y_hat"] = Ytu[self.window:]
+            pred_nn["u_hat"] = Xtu[self.window:,0:self.nu]
 
             Obj = 10*np.sum((pred_nn["y_hat"] - SP_hat)**2) + np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
 
@@ -91,7 +91,7 @@ class Mpc_nn:
         start = time.time()
 
         # solution = minimize(self.objective,ui,method='SLSQP', args=(yp,sp))
-        uhat = uhat.flatten()
+        # uhat = uhat.flatten()
         solution = minimize(self.MPCobj_nn, uhat, method='SLSQP',args=(u_window, y_window, sp),options={'eps': 1e-06, 'ftol': 1e-01})
         u = solution.x  
         u = np.reshape(u, (4, 2))

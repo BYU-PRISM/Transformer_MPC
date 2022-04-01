@@ -56,7 +56,7 @@ class Mpc_nn:
         Ytu = self.s2.inverse_transform(Ysq)
         Xtu = self.s1.inverse_transform(Xsq)
 
-        u_hat0 = np.append(u_window[-1], u_hat)
+        u_hat0 = np.append(u_window[-1], u_hat) # prepare for 'delta u' objective function
 
 
         pred_nn = {}
