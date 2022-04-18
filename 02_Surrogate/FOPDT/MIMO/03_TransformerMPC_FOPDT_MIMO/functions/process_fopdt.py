@@ -5,7 +5,7 @@ from gekko import GEKKO
 
 
 class ProcessModel(GEKKO):
-    def __init__(self, dt=1, remote=True):
+    def __init__(self, dt=1, remote=False):
         super().__init__(remote=remote)
 
         
@@ -51,12 +51,12 @@ class ProcessModel(GEKKO):
 
 
         #FOPDT Equation
-        self.Equation(x11.dt()+x11 == K11/tau11*u1) 
-        self.Equation(x12.dt()+x12 == K12/tau12*u2) 
+        self.Equation(x11.dt()+x11/tau11 == K11/tau11*u1) 
+        self.Equation(x12.dt()+x12/tau12 == K12/tau12*u2) 
         self.Equation(y1 == x11 + x12)
 
-        self.Equation(x21.dt()+x21 == K21/tau21*u1) 
-        self.Equation(x22.dt()+x22 == K22/tau22*u2) 
+        self.Equation(x21.dt()+x21/tau21 == K21/tau21*u1) 
+        self.Equation(x22.dt()+x22/tau22 == K22/tau22*u2) 
         self.Equation(y2 == x21 + x22)
 
         self.u1 = u1

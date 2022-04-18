@@ -40,7 +40,7 @@ model_trans_multi = load_model(path +'MPC_MIMO_FOPDT_multistep_Trans.h5')
 # # FOPDT Parameters
 # K=1.0      # gain
 # tau=2.0    # time constant
-ns = 10    # Simulation Length
+ns = 50   # Simulation Length
 t = np.linspace(0,ns,ns+1)
 delta_t = t[1]-t[0]
 
@@ -53,18 +53,18 @@ M = 4  # Control Horizon
 
 # Input Sequence
 u = np.zeros((ns+1,nu))
-# u[5:,0] = 5
-# u[10:,1] = 3
+u[5:,0] = 5
+u[10:,1] = 3
 
 # Setpoint Sequence
 
 sp1 = np.zeros(ns+1)
-sp1[6:40] = 2
+sp1[6:40] = 1
 sp1[40:] = 1
 # sp1[80:] = 1.5
 
 sp2 = np.zeros(ns+1)
-sp2[6:40] = 1
+sp2[6:40] = 0.5
 sp2[60:] = 2
 # sp2[80:] = 1.5
 
@@ -76,9 +76,10 @@ maxmove = 1
 
 ## Process simulation 
 yp = np.zeros((ns+1,ny))
+yp_nn = np.zeros((ns+1,ny))
 
 p = ProcessModel(delta_t)
-m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=0, model_one=model_lstm_one, model_multi=model_lstm_multi)
+m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_lstm_one, model_multi=model_lstm_multi)
 # multistep = 0 : sequential onestep prediction MPC
 # multistep = 1 : simultaneous multistep prediction MPC
 
@@ -94,28 +95,32 @@ for i in range(window,ns):
     # run process model
     yp[i+1] = p.run(u[i])
 
-    # run MPC 
-    uhat = m.run(uhat, u_window, y_window, sp[i])
-    u[i+1] = uhat[0]
-    # delta = u[i+1] - u[i]
+    # run NN model
+    yp_nn[i+1] = m.MPCobj_nn(uhat, u_window, y_window, sp[i])[:,0]
+
+    # # run MPC 
+    # uhat = m.run(uhat, u_window, y_window, sp[i])
+    # u[i+1] = uhat[0]
+    # # delta = u[i+1] - u[i]
     
-    # if np.abs(delta) >= maxmove:
-    #     if delta > 0:
-    #         u[i+1] = u[i]+maxmove
-    #     else:
-    #         u[i+1] = u[i]-maxmove
+    # # if np.abs(delta) >= maxmove:
+    # #     if delta > 0:
+    # #         u[i+1] = u[i]+maxmove
+    # #     else:
+    # #         u[i+1] = u[i]-maxmove
 
 
-    print(uhat[0])
-    u_window = u[i-window+1:i+1]
-    y_window = yp[i-window+1:i+1]
+    # print(uhat[0])
+    # u_window = u[i-window+1:i+1]
+    # y_window = yp[i-window+1:i+1]
 
     
 # plt.plot(t, yp)
 plt.subplot(2,1,1)
 plt.plot(t, yp[:,0])
 plt.plot(t, yp[:,1])
-plt.step(t, sp)
+plt.plot(t, yp_nn)
+# plt.step(t, sp)
 plt.subplot(2,1,2)
 plt.step(t, u[:,0])
 plt.step(t,u[:,1])

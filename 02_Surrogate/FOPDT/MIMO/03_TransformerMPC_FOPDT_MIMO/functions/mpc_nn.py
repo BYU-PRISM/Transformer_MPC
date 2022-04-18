@@ -55,32 +55,32 @@ class Mpc_nn:
         
         else:
             Xin = Xsq.reshape((1, self.window+self.P, np.shape(Xsq)[1]))
-            Ysq = self.model_multi(Xin)[0]
+            Ysq = self.model_multi(Xin)[:,0]
 
 
         Ytu = self.s2.inverse_transform(Ysq)
         Xtu = self.s1.inverse_transform(Xsq)
 
+        print(Ytu)
+
         u_hat0 = np.append(u_window[-1], u_hat) # prepare for 'rate of change of MV' in the objective function
         u_hat0 = u_hat0.reshape((-1,self.nu))
-        # u_hat = u_hat.flatten()
-
+       
 
         pred_nn = {}
         if self.multistep == 0:
             pred_nn["y_hat"] = Ytu[self.window:]
             pred_nn["u_hat"] = Xtu[self.window:,0:self.nu]
 
-            Obj = 10*np.sum((pred_nn["y_hat"] - SP_hat)**2) + np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
+            Obj = 1*np.sum((pred_nn["y_hat"] - SP_hat)**2) + 5*np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
 
         else:
             pred_nn["y_hat_multi"] = Ytu[0]
             pred_nn["u_hat_multi"] = Xtu[self.window:,0]
             
-            Obj = 10*np.sum((pred_nn["y_hat_multi"] - SP_hat)**2) + np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
+            Obj = 1*np.sum((pred_nn["y_hat_multi"] - SP_hat)**2) + 1*np.sum(((u_hat0[1:] - u_hat0[0:-1])**2))
         print('Obj=',Obj)
-        return Obj
-    
+        return Ytu
     
 
 
@@ -89,10 +89,14 @@ class Mpc_nn:
 
         # u_hat0 = np.ones(self.M) * ui
         start = time.time()
-
+        bnds = np.array([[0, 3],[0, 3],[0, 3],[0, 3],[0, 3],[0, 3],[0, 3],[0, 3]])
         # solution = minimize(self.objective,ui,method='SLSQP', args=(yp,sp))
-        # uhat = uhat.flatten()
-        solution = minimize(self.MPCobj_nn, uhat, method='SLSQP',args=(u_window, y_window, sp),options={'eps': 1e-06, 'ftol': 1e-01})
+        # solution = minimize(self.MPCobj_nn, uhat, method='SLSQP',bounds=bnds,args=(u_window, y_window, sp),options={'eps': 1e-06, 'ftol': 1e-01})
+        solution = minimize(self.MPCobj_nn, uhat, method='SLSQP',bounds=bnds,args=(u_window, y_window, sp),options={'eps': 1e-02,
+                                                                                                                    'maxiter': 100,
+                                                                                                                    'ftol': 1e-03})
+        # 
+
         u = solution.x  
         u = np.reshape(u, (4, 2))
 
