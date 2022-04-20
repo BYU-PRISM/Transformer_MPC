@@ -53,19 +53,19 @@ M = 4  # Control Horizon
 
 # Input Sequence
 u = np.zeros((ns+1,nu))
-u[5:,0] = 5
-u[10:,1] = 3
+# u[5:,0] = .3
+# u[5:,1] = .6
 
 # Setpoint Sequence
 
 sp1 = np.zeros(ns+1)
-sp1[6:40] = 1
-sp1[40:] = 1
+sp1[6:40] = 0.5
+sp1[40:] = .3
 # sp1[80:] = 1.5
 
 sp2 = np.zeros(ns+1)
-sp2[6:40] = 0.5
-sp2[60:] = 2
+# sp2[20:] = 0.3
+# sp2[60:] = 0.2
 # sp2[80:] = 1.5
 
 sp = np.array([sp1, sp2]).T
@@ -76,10 +76,10 @@ maxmove = 1
 
 ## Process simulation 
 yp = np.zeros((ns+1,ny))
-yp_nn = np.zeros((ns+1,ny))
+yp_nn = np.zeros((ns+1,ny, P))
 
 p = ProcessModel(delta_t)
-m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_lstm_one, model_multi=model_lstm_multi)
+m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
 # multistep = 0 : sequential onestep prediction MPC
 # multistep = 1 : simultaneous multistep prediction MPC
 
@@ -87,40 +87,46 @@ uhat = np.zeros((M, nu))
 for i in range(1, window):
     yp[i] = p.run(u[i-1])
 
-u_window = u[0:window]
-y_window = yp[0:window]
+
 
 for i in range(window,ns):
+    u_window = u[i-window+1: i+1, :]
+    y_window = yp[i-window+1: i+1, :]
+
     print(i)
     # run process model
     yp[i+1] = p.run(u[i])
 
     # run NN model
-    yp_nn[i+1] = m.MPCobj_nn(uhat, u_window, y_window, sp[i])[:,0]
+    # yp_nn[i+1] = m.MPCobj_nn(uhat, u_window, y_window, sp[i])[:,0]
+    # uhat[:] = u_window[-1]
+    # yp_nn[i+1] = m.MPCobj_nn(uhat, u_window, y_window, sp[i]).T
 
-    # # run MPC 
-    # uhat = m.run(uhat, u_window, y_window, sp[i])
-    # u[i+1] = uhat[0]
-    # # delta = u[i+1] - u[i]
+    # run MPC 
+    uhat = m.run(uhat, u_window, y_window, sp[i])
+    u[i+1] = uhat[0]
+
+    yp_nn[i+1] = m.RunNN(uhat, u_window, y_window, sp[i]).T
+    # delta = u[i+1] - u[i]
     
-    # # if np.abs(delta) >= maxmove:
-    # #     if delta > 0:
-    # #         u[i+1] = u[i]+maxmove
-    # #     else:
-    # #         u[i+1] = u[i]-maxmove
+    # if np.abs(delta) >= maxmove:
+    #     if delta > 0:
+    #         u[i+1] = u[i]+maxmove
+    #     else:
+    #         u[i+1] = u[i]-maxmove
 
 
-    # print(uhat[0])
-    # u_window = u[i-window+1:i+1]
-    # y_window = yp[i-window+1:i+1]
+    print(uhat[0])
+    u_window = u[i-window+1:i+1]
+    y_window = yp[i-window+1:i+1]
 
     
 # plt.plot(t, yp)
 plt.subplot(2,1,1)
 plt.plot(t, yp[:,0])
 plt.plot(t, yp[:,1])
-plt.plot(t, yp_nn)
-# plt.step(t, sp)
+plt.plot(t, yp_nn[:,:,0])
+plt.step(t, sp)
 plt.subplot(2,1,2)
 plt.step(t, u[:,0])
 plt.step(t,u[:,1])
