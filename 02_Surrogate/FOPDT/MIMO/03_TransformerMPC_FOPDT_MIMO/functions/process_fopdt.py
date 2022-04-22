@@ -14,9 +14,9 @@ class ProcessModel(GEKKO):
 
         # Process Gain
         K11 = self.FV(2)
-        K12 = self.FV(.5) 
-        K21 = self.FV(.5) 
-        K22 = self.FV(2)
+        K12 = self.FV(0) 
+        K21 = self.FV(0) 
+        K22 = self.FV(1)
 
         # Time Constant
         tau11 = self.FV(5)

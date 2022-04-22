@@ -34,13 +34,13 @@ model_lstm_one = load_model(path +'MPC_MIMO_FOPDT_onestep_LSTM.h5')
 model_trans_one = load_model(path +'MPC_MIMO_FOPDT_onestep_Trans.h5')
 
 # Load NN models (multistep prediction models)
-model_lstm_multi = load_model(path +'MPC_MIMO_FOPDT_multistep_LSTM.h5')
-model_trans_multi = load_model(path +'MPC_MIMO_FOPDT_multistep_Trans.h5')
+model_lstm_multi = load_model(path +'MPC_MIMO_FOPDT_multistep_LSTM_6000.h5')
+model_trans_multi = load_model(path +'MPC_MIMO_FOPDT_multistep_Trans_6000.h5')
 
 # # FOPDT Parameters
 # K=1.0      # gain
 # tau=2.0    # time constant
-ns = 50   # Simulation Length
+ns = 80   # Simulation Length
 t = np.linspace(0,ns,ns+1)
 delta_t = t[1]-t[0]
 
@@ -59,13 +59,13 @@ u = np.zeros((ns+1,nu))
 # Setpoint Sequence
 
 sp1 = np.zeros(ns+1)
-sp1[6:40] = 0.5
-sp1[40:] = .3
+sp1[10:] = 0.5
+sp1[40:] = .4
 # sp1[80:] = 1.5
 
 sp2 = np.zeros(ns+1)
-# sp2[20:] = 0.3
-# sp2[60:] = 0.2
+sp2[20:] = 0.2
+sp2[60:] = 0.1
 # sp2[80:] = 1.5
 
 sp = np.array([sp1, sp2]).T
@@ -125,7 +125,7 @@ for i in range(window,ns):
 plt.subplot(2,1,1)
 plt.plot(t, yp[:,0])
 plt.plot(t, yp[:,1])
-plt.plot(t, yp_nn[:,:,0])
+# plt.plot(t, yp_nn[:,:,0])
 plt.step(t, sp)
 plt.subplot(2,1,2)
 plt.step(t, u[:,0])

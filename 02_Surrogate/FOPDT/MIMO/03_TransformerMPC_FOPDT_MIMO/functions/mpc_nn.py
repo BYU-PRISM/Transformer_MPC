@@ -68,8 +68,8 @@ class Mpc_nn:
         u_hat0 = u_hat0.reshape((-1,self.nu))
        
 
-        W_CV = np.array([1000, 0.00002])
-        W_MV = np.array([5,100])
+        W_CV = np.array([10, 10])
+        W_MV = np.array([100,100])
 
         pred_nn = {}
         if self.multistep == 0:
