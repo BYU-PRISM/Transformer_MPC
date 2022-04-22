@@ -134,4 +134,4 @@ Figures/
 *.gif
 *.jpg
 *.png
-*.svg
+*.svg.DS_Store
