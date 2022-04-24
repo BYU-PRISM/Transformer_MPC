@@ -1,11 +1,5 @@
-import warnings
-
-# with warnings.catch_warnings():
-warnings.simplefilter("ignore")
-warnings.filterwarnings("ignore")
-from sklearn import preprocessing
-
 from functions.process_fopdt import ProcessModel
+from functions.mpc_gekko import MPCModel
 from functions.mpc_nn import Mpc_nn
 
 import numpy as np
@@ -22,13 +16,13 @@ import time
 path = 'data/'
 
 # For LSTM model
-import tensorflow as tf
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import LSTM
-from keras.layers import Dropout
-from keras.callbacks import EarlyStopping
-from keras.models import load_model
+# import tensorflow as tf
+# from keras.models import Sequential
+# from keras.layers import Dense
+# from keras.layers import LSTM
+# from keras.layers import Dropout
+# from keras.callbacks import EarlyStopping
+# from keras.models import load_model
 
 # Load NN model parameters and MinMaxScaler
 model_params = load(open(path + 'model_param_MIMO.pkl', 'rb'))
@@ -37,12 +31,12 @@ s2 = model_params['yscale']
 window = model_params['window']
 
 # Load NN models (onestep prediction models)
-model_lstm_one = load_model(path + 'MPC_MIMO_FOPDT_onestep_LSTM.h5')
-model_trans_one = load_model(path + 'MPC_MIMO_FOPDT_onestep_Trans.h5')
+# model_lstm_one = load_model(path +'MPC_MIMO_FOPDT_onestep_LSTM.h5')
+# model_trans_one = load_model(path +'MPC_MIMO_FOPDT_onestep_Trans.h5')
 
 # Load NN models (multistep prediction models)
-model_lstm_multi = load_model(path + 'MPC_MIMO_FOPDT_multistep_LSTM_6000.h5')
-model_trans_multi = load_model(path + 'MPC_MIMO_FOPDT_multistep_Trans_6000.h5')
+# model_lstm_multi = load_model(path +'MPC_MIMO_FOPDT_multistep_LSTM_6000.h5')
+# model_trans_multi = load_model(path +'MPC_MIMO_FOPDT_multistep_Trans_6000.h5')
 
 # # FOPDT Parameters
 # K=1.0      # gain
@@ -85,7 +79,8 @@ yp = np.zeros((ns + 1, ny))
 yp_nn = np.zeros((ns + 1, ny, P))
 
 p = ProcessModel(delta_t)
-m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
+# m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
+m = MPCModel(remote=False)
 # multistep = 0 : sequential onestep prediction MPC
 # multistep = 1 : simultaneous multistep prediction MPC
 
@@ -94,13 +89,23 @@ for i in range(1, window):
     yp[i] = p.run(u[i - 1])
 
 for i in range(window, ns):
-    print(i)
 
-    # run process model
-    yp[i + 1] = p.run(u[i])
+    if p.options.SOLVESTATUS == 1:
+        m.y1.MEAS = p.y1.MODEL
+        m.y2.MEAS = p.y2.MODEL
 
-    u_window = u[i - window + 1:i + 1]
-    y_window = yp[i - window + 1:i + 1]
+    m.y1.SPHI = sp[i][0] + 0.01
+    m.y2.SPHI = sp[i][1] + 0.01
+
+    m.y1.SP = sp[i][0]
+    m.y2.SP = sp[i][1]
+
+    m.y1.SPLO = sp[i][0] - 0.01
+    m.y2.SPLO = sp[i][1] - 0.01
+
+    m.solve(disp=False)
+    uhat = [m.u1.NEWVAL, m.u2.NEWVAL]
+    u[i + 1] = uhat
 
     # run NN model
     # yp_nn[i+1] = m.MPCobj_nn(uhat, u_window, y_window, sp[i])[:,0]
@@ -108,10 +113,10 @@ for i in range(window, ns):
     # yp_nn[i+1] = m.MPCobj_nn(uhat, u_window, y_window, sp[i]).T
 
     # run MPC 
-    uhat = m.run(uhat, u_window, y_window, sp[i])
-    u[i + 1] = uhat[0]
+    # uhat = m.run(uhat, u_window, y_window, sp[i])
+    u[i + 1] = uhat
 
-    yp_nn[i + 1] = m.RunNN(uhat, u_window, y_window, sp[i]).T
+    # yp_nn[i+1] = m.RunNN(uhat, u_window, y_window, sp[i]).T
     # delta = u[i+1] - u[i]
 
     # if np.abs(delta) >= maxmove:
@@ -120,13 +125,18 @@ for i in range(window, ns):
     #     else:
     #         u[i+1] = u[i]-maxmove
 
-    print(uhat[0])
+    print(uhat)
+    u_window = u[i - window + 1:i + 1]
+    y_window = yp[i - window + 1:i + 1]
+
+    # run process model
+    yp[i + 1] = p.run(u[i + 1])
 
 # plt.plot(t, yp)
 plt.subplot(2, 1, 1)
 plt.plot(t, yp[:, 0])
 plt.plot(t, yp[:, 1])
-# plt.plot(t, yp_nn[:, :, 0], '-.')
+# plt.plot(t, yp_nn[:,:,0])
 plt.step(t, sp)
 plt.subplot(2, 1, 2)
 plt.step(t, u[:, 0])

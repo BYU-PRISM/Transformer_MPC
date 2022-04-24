@@ -8,21 +8,20 @@ class ProcessModel(GEKKO):
     def __init__(self, dt=1, remote=False):
         super().__init__(remote=remote)
 
-        
         self.dt = dt
         self.time = np.array([0, self.dt])
 
         # Process Gain
         K11 = self.FV(2)
-        K12 = self.FV(0) 
-        K21 = self.FV(0) 
+        K12 = self.FV(0)
+        K21 = self.FV(0)
         K22 = self.FV(1)
 
         # Time Constant
         tau11 = self.FV(5)
-        tau12 = self.FV(5) 
-        tau21 = self.FV(5) 
-        tau22 = self.FV(5) 
+        tau12 = self.FV(5)
+        tau21 = self.FV(5)
+        tau22 = self.FV(5)
 
         # # Input Scenario for open-loop
         # u1_input = np.zeros(tf)
@@ -49,14 +48,13 @@ class ProcessModel(GEKKO):
         u1 = self.MV(0, lb=0, ub=5)
         u2 = self.MV(0, lb=0, ub=5)
 
-
-        #FOPDT Equation
-        self.Equation(x11.dt()+x11/tau11 == K11/tau11*u1) 
-        self.Equation(x12.dt()+x12/tau12 == K12/tau12*u2) 
+        # FOPDT Equation
+        self.Equation(x11.dt() + x11 / tau11 == K11 / tau11 * u1)
+        self.Equation(x12.dt() + x12 / tau12 == K12 / tau12 * u2)
         self.Equation(y1 == x11 + x12)
 
-        self.Equation(x21.dt()+x21/tau21 == K21/tau21*u1) 
-        self.Equation(x22.dt()+x22/tau22 == K22/tau22*u2) 
+        self.Equation(x21.dt() + x21 / tau21 == K21 / tau21 * u1)
+        self.Equation(x22.dt() + x22 / tau22 == K22 / tau22 * u2)
         self.Equation(y2 == x21 + x22)
 
         self.u1 = u1
@@ -76,9 +74,9 @@ class ProcessModel(GEKKO):
         # for i in range(tf):
         #     y1.SP = SP1[i]
         #     y2.SP = SP2[i]
-            
+
         # self.solve(disp=True)
-        
+
         # u1_store[i] = u1.NEWVAL
         # u2_store[i] = u2.NEWVAL
         # y1_store[i] = y1.value[1]
@@ -98,16 +96,11 @@ class ProcessModel(GEKKO):
         # plt.legend(['u1', 'u2'])
         # plt.show()
 
-
     def run(self, u):
         self.u1.value = u[0]
         self.u2.value = u[1]
 
         self.solve(disp=False)
-        self.time = self.time + self.dt
+        # self.time = self.time + self.dt
 
         return np.array([self.y1.value[-1], self.y2.value[-1]])
-
-        
-
-
