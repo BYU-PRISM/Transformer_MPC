@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from gekko import GEKKO
-from smt.sampling_methods import LHS
-from smt.sampling_methods import Random
+# from smt.sampling_methods import LHS
+# from smt.sampling_methods import Random
 
 
 num = [10] # number of steps (or, number of samples)
