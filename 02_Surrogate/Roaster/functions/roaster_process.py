@@ -5,19 +5,19 @@ from gekko import GEKKO
 import time
 
 class ProcessModel(GEKKO):
-    def __init__(self, data, Stoi, FVs, remote=True):
+    def __init__(self, data, Stoi, FVs, delta_t, remote=True):
         super().__init__(remote=remote)
         # self.nstep = np.max(t_change)+30
-        self.nstep = 30
+        self.nstep = int(delta_t)
 
         #%% simulation settings
 
         # Simulation Time
         # tsim = 11000* 60 # sec
-        tsim = self.nstep * 10 * 60 # [sec] = self.nstep * [min/step] * [sec/min] 
+        # tsim = self.nstep * 10 * 60 # [sec] = self.nstep * [min/step] * [sec/min] 
 
         # Time step
-        tstep = 10 * 60 # sec
+        tstep = delta_t * 60 # sec
 
         # size of array (number of steps)
         # self.nstep = int(tsim/tstep+1)
@@ -66,7 +66,7 @@ class ProcessModel(GEKKO):
                 "O2_in_LO": 4000    
                     }
 
-        self.unitconv(self.data_input)
+        self.data_tph = self.unitconv(self.data_input)
 
 
         # Data input in unit wt%, Fafahrenheit, amps (Feed_amps), scfm (O2_in), ton/h(Feed_Sulfur), oz/ton (Gold)
@@ -75,11 +75,32 @@ class ProcessModel(GEKKO):
                     "O2_out", "CO2_out",	"SO2_out", "CO3_out", "TCM_out", "Sulf_out", "Gold_out",
                     "T1", "T2"}
             
+        key_result = {"O2", "CO2", "SO2", "TCM", "FeS2", "CaCO3", "T1", "T2"}
+        
+        # self.key_input = {"Ore_amps", "Sulfur_tph", "O2_scfm", "Carbon_in", "Sulf_in", "CO3_in" }
+
+        #%%
+        # Separate list of keys for using in 'For' loop 
+        keys_Solid = ['SiO2', 'FeS2', 'Fe087S', 'CaCO3', 'TCM', 'Au', 'CaSO4', 'Fe2O3', 'S']
+        keys_Gas = ['CO2','O2','SO2']
+
+        keys = keys_Solid + keys_Gas
+        self.keys = keys
+
+        self.result = {}
+        for key_i in self.keys:
+            self.result[key_i] = []
+
+        self.result["T1"] = []
+        self.result["T2"] = []
+
+        self.keys_Solid = keys_Solid
+        self.keys_Gas = keys_Gas
 
         #%% GEKKO
         # m = GEKKO(remote=True)
-        #self.time = [0,tstep]           # for animated version
-        self.time = np.linspace(0, tsim, self.nstep)
+        self.time = [0,tstep]           # for animated version
+        # self.time = np.linspace(0, tsim, self.nstep)
 
         # TPH
         S2 = self.MV(0)
@@ -119,12 +140,7 @@ class ProcessModel(GEKKO):
         T_Sulphur0 = (T_Sulphur0 -32) * 5/9 + 273.15 #[K]
         T_O20 = (T_O20 -32) * 5/9 + 273.15 #[K]
 
-        #%%
-        # Separate list of keys for using in 'For' loop 
-        keys_Solid = ['SiO2', 'FeS2', 'Fe087S', 'CaCO3', 'TCM', 'Au', 'CaSO4', 'Fe2O3', 'S']
-        keys_Gas = ['CO2','O2','SO2']
-
-        keys = keys_Solid + keys_Gas
+        
 
         # Feed mass Flowrate (Ton/h)
         w0 = {
@@ -719,7 +735,7 @@ class ProcessModel(GEKKO):
 
         self.options.IMODE = 1
         self.options.SOLVER = 3
-        self.solve(disp=True)
+        self.solve(disp=False)
 
         self.options.IMODE = 4
         self.options.SOLVER = 3
@@ -786,38 +802,49 @@ class ProcessModel(GEKKO):
     
 #%% Run function
     def run(self, input):   
-        data_tph = self.unitconv(input)
-        self.Ore_in.value = data_tph["Ore_in"]
-        self.Sul_in.value = self.data_tph["Sulfur_in"]
+        data_tph = self.preprocessing(input)
 
-        self.solve(disp=True)
+        self.Sulf_in = self.data_tph["Sulf_in"]
+        self.CO3_in = self.data_tph["CO3_in"]
+        self.Carbon_in = self.data_tph["Carbon_in"]
+        # input.Gold_in = self.data_tph["Gold_in"]
+        self.Ore_in = self.data_tph["Ore_in"]
+        self.Sulfur_in = self.data_tph["Sulfur_in"]
+        self.O2_in = self.data_tph["O2_in"]
 
-        return self.get_result()
+        self.solve(disp=False)
+
+        return self.update_result()
 
     def preprocessing(self, x):
 
-
         data_tph = self.data_tph
-        data_tph["Ore_amps"] = x[0]
-        data_tph["Sulfur_tph"] = x[1]
-        data_tph["O2_scfm"] = x[2]
+        data_tph["Ore_in"] = x[0]
+        data_tph["Sulfur_in"] = x[1]
+        data_tph["O2_in"] = x[2]
         data_tph["Carbon_in"] = x[3]
         data_tph["Sulf_in"] = x[4]
         data_tph["CO3_in"] = x[5]
 
         self.data_tph = data_tph
 
-        
+    def update_result(self):
+        for key_i in self.keys_Gas:
+            self.result[key_i].append(self.wp_og1[key_i].value[-1])
 
-#%% get function
-    def get_result(self):
+        for key_i in self.keys_Solid:
+            self.result[key_i].append(self.wp_calcine2[key_i].value[-1])
 
-
-        #%% Convert Kelvin to Fahrenheit
         T_1 = (np.array(self.T_reactor1.value) - 273.15) * 9/5 + 32 # F
         T_2 = (np.array(self.T_reactor2.value) - 273.15) * 9/5 + 32 # F
 
-        return T_1, T_2
+        self.result["T1"].append(T_1[-1])
+        self.result["T2"].append(T_2[-1])
+
+    def get_result(self):
+        return self.result.copy()
+
+
 
         # #%% Convert tau (sec to min)
         # tau1_m = np.array(self.tau1.value)/60

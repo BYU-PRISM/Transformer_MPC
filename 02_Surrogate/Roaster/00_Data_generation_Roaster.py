@@ -28,54 +28,117 @@ Stoi = Stoi.T
 # Read FV.NEWVAL from csv file for simulation (for IMODE = 1, 3 or 4)
 FVs = pd.read_csv(path + "FVs.csv", index_col=0)
 
-# from smt.sampling_methods import LHS
-# from smt.sampling_methods import Random
+from smt.sampling_methods import LHS
+from smt.sampling_methods import Random
 
 
 #%% Sampling
+# num = [50, 70, 90, 110] # number of steps (or, number of samples)
+num = [150]
+for i in range(np.size(num)):
+    print(i)
+  
+    
+    #%% Sampling
+    
+    ninput = 6 # number of inputs
+    xlimits = np.array([[80, 100], [9, 13], [7000, 8000], [0.8, 0.9], [0.6, 0.7], [17, 18]]) # time step for input1, 2, 3 and input1, 2, and 3
+    
+    # Latin Hypercube Sampling
+    sampling = LHS(xlimits=xlimits)
+    x = sampling(num[i])
+    
+    
+    # Random Sampling
+    # sampling = Random(xlimits=xlimits)
+    # x = sampling(num[i])
+    
+    
+    # Generating the time points for step changes 
+    t_change = np.random.randint(10, 30, [num[i],ninput])
+    for k in range(1,np.shape(t_change)[0]):
+        t_change[k] = t_change[k]+t_change[k-1]
+    
+    print(x.shape)
+    
+    # nstep = np.max(t_change)+30
+    nstep = 3000
+    
+      
+    #%% input data
+    
+    data_input = {
+            "Ore_amps" : np.ones(nstep)*90,
+            "Sulfur_tph": np.ones(nstep)*11,
+            "O2_scfm": np.ones(nstep)*7400,
+            "Carbon_in": np.ones(nstep)*0.87,
+            "Sulf_in": np.ones(nstep)*0.64,
+            "CO3_in": np.ones(nstep)*17.92,
+            "Gold_in":np.ones(nstep)*0.16,
+            "level1": np.ones(nstep)*140,
+            "level2": np.ones(nstep)*30,
+            "Ore_in_HI": 120,
+            "Ore_in_LO": 98,
+            "Sul_in_HI": 58,
+            "Sul_in_LO": 0,
+            "O2_in_HI": 8000,
+            "O2_in_LO": 4000    
+             }
+    
+    # Creating time points to step changes
+    for j in range(num[i]):
+        data_input["Ore_amps"][t_change[j,0]:] = x[j,0]
+        data_input["Sulfur_tph"][t_change[j,1]:] = x[j,1]
+        data_input["O2_scfm"][t_change[j,2]:] = x[j,2]
+        data_input["Carbon_in"][t_change[j,3]:] = x[j,3]
+        data_input["Sulf_in"][t_change[j,4]:] = x[j,4]
+        data_input["CO3_in"][t_change[j,5]:] = x[j,5]
 
-# ninput = 6 # number of inputs
-# xlimits = np.array([[80, 100], [9, 13], [7000, 8000], [0.8, 0.9], [0.6, 0.7], [17, 18]]) # time step for input1, 2, 3 and input1, 2, and 3
-
-# # Latin Hypercube Sampling
-# # sampling = LHS(xlimits=xlimits)
-# # x = sampling(num[i])
 
 
-# # Random Sampling
-# sampling = Random(xlimits=xlimits)
-# x = sampling(num[i])
 
 
-# # Generating the time points for step changes 
-# t_change = np.random.randint(10, 30, [num[i],ninput])
-# for k in range(1,np.shape(t_change)[0]):
-#     t_change[k] = t_change[k]+t_change[k-1]
 
-# print(x.shape)
+df = pd.DataFrame(data_input)
+input = df.to_numpy()
+input = input[:,:6]
 
-p = ProcessModel(data,Stoi,FVs)
+ns = 30  # Simulation Length
+t = np.linspace(0, ns, ns + 1)
+delta_t = t[1] - t[0]
 
+# nu = 6
+# ny = 8
+p = ProcessModel(data,Stoi,FVs, delta_t)
 
-[T1, T2] = p.run()
+for i in range(1, ns):
+
+    # run process model
+    p.run(input[i])
+    print(i)
+
+result = p.get_result()
+
+result["O2"]
+
 
 # %% plotting
-t_minute = p.time/60
+# t_minute = p.time/60
 
 plt.figure(1)
 plt.title('Feed rate')
 plt.subplot(3,1,1)
-plt.plot(t_minute,p.data_input["Ore_amps"], color='tab:blue', linestyle='-', linewidth=3,label='Ore_amps')
+plt.plot(data_input["Ore_amps"][0:ns], color='tab:blue', linestyle='-', linewidth=3,label='Ore_amps')
 plt.ylabel('Amps')
 plt.xlabel('time[min]')
 plt.legend(loc='best') 
 plt.subplot(3,1,2)
-plt.plot(t_minute,p.data_input["Sulfur_tph"], color='tab:blue', linestyle='-', linewidth=3,label='Sulfur_tph')
+plt.plot(data_input["Sulfur_tph"][0:ns], color='tab:blue', linestyle='-', linewidth=3,label='Sulfur_tph')
 plt.ylabel('t/h')
 plt.xlabel('time[min]')
 plt.legend(loc='best') 
 plt.subplot(3,1,3)
-plt.plot(t_minute,p.data_input["O2_scfm"], color='tab:blue', linestyle='-', linewidth=3,label='O2_scfm')
+plt.plot(data_input["O2_scfm"][0:ns], color='tab:blue', linestyle='-', linewidth=3,label='O2_scfm')
 plt.ylabel('SCFM[kg/h]')
 plt.xlabel('time[min]')
 plt.legend(loc='best') 
@@ -83,17 +146,17 @@ plt.legend(loc='best')
 plt.figure(2)
 plt.title('Feed Ore Composition')
 plt.subplot(3,1,1)
-plt.plot(t_minute,p.data_input["Carbon_in"], color='tab:orange', linestyle='-', linewidth=3,label='Carbon_in (wt%)')
+plt.plot(data_input["Carbon_in"][0:ns], color='tab:orange', linestyle='-', linewidth=3,label='Carbon_in (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best') 
 plt.subplot(3,1,2)
-plt.plot(t_minute,p.data_input["Sulf_in"], color='tab:orange', linestyle='-', linewidth=3,label='Sulf_in (wt%)')
+plt.plot(data_input["Sulf_in"][0:ns], color='tab:orange', linestyle='-', linewidth=3,label='Sulf_in (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best')     
 plt.subplot(3,1,3)
-plt.plot(t_minute,p.data_input["CO3_in"], color='tab:orange', linestyle='-', linewidth=3,label='CO3_in (wt%)')
+plt.plot(data_input["CO3_in"][0:ns], color='tab:orange', linestyle='-', linewidth=3,label='CO3_in (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best')  
@@ -123,17 +186,17 @@ plt.legend(loc='best')
 plt.figure(4)
 plt.title('Off Gas Composition')
 plt.subplot(3,1,1)
-plt.plot(t_minute,p.wp_og1["O2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_O2 (wt%)')
+plt.plot(result["O2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_O2 (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best') 
 plt.subplot(3,1,2)
-plt.plot(t_minute,p.wp_og1["CO2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_CO2 (wt%)')
+plt.plot(result["CO2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_CO2 (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best')     
 plt.subplot(3,1,3)
-plt.plot(t_minute,p.wp_og1["SO2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_SO2 (wt%)')
+plt.plot(result["SO2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_SO2 (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best')     
@@ -141,17 +204,17 @@ plt.legend(loc='best')
 plt.figure(5)
 plt.title('Calcine Composition')
 plt.subplot(3,1,1)
-plt.plot(t_minute,p.wp_calcine2["TCM"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_TCM (wt%)')
+plt.plot(result["TCM"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_TCM (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best') 
 plt.subplot(3,1,2)
-plt.plot(t_minute,p.wp_calcine2["FeS2"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_Sulfur (wt%)')
+plt.plot(result["FeS2"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_Sulfur (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best')     
 plt.subplot(3,1,3)
-plt.plot(t_minute,p.wp_calcine2["CaCO3"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_CO3 (wt%)')
+plt.plot(result["CaCO3"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_CO3 (wt%)')
 plt.ylabel('wt%')
 plt.xlabel('time[min]')
 plt.legend(loc='best')  
@@ -159,12 +222,12 @@ plt.legend(loc='best')
 plt.figure(6)
 plt.title("Reactor Temperature")
 plt.subplot(2,1,1)
-plt.plot(t_minute,T1, color='tab:red', linestyle='-', linewidth=3,label='T1')
+plt.plot(result["T1"], color='tab:red', linestyle='-', linewidth=3,label='T1')
 plt.ylabel('F')
 plt.xlabel('time[min]')
 plt.legend(loc='best') 
 plt.subplot(2,1,2)
-plt.plot(t_minute,T2, color='tab:red', linestyle='-', linewidth=3,label='T2')
+plt.plot(result["T2"], color='tab:red', linestyle='-', linewidth=3,label='T2')
 plt.ylabel('F')
 plt.xlabel('time[min]')
 plt.legend(loc='best')     
