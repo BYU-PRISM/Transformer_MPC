@@ -1,10 +1,12 @@
+from turtle import width
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from gekko import GEKKO
-# from smt.sampling_methods import LHS
-# from smt.sampling_methods import Random
+from smt.sampling_methods import LHS
+from smt.sampling_methods import Random
 
+path = 'data/'
 
 num = [10] # number of steps (or, number of samples)
 for i in range(np.size(num)):
@@ -13,10 +15,10 @@ for i in range(np.size(num)):
     #%% Load CSV files
     
     # Load Thermodyanamic Data
-    data = pd.read_csv('ThermoData.csv', index_col = 0)
+    data = pd.read_csv(path + 'ThermoData.csv', index_col = 0)
     
     # Load Stoichiometry data
-    Stoi = pd.read_csv('Stoichiometry_Test4.csv', index_col = 0)
+    Stoi = pd.read_csv(path + 'Stoichiometry_Test4.csv', index_col = 0)
     Stoi = Stoi.T
     Stoi.S[2:] = Stoi.S[2:]/Stoi.S[1]
     Stoi.TCM[2:] = Stoi.TCM[2:]/Stoi.TCM[1]
@@ -738,7 +740,7 @@ for i in range(np.size(num)):
     wp_calcine2["CaCO3"].STATUS = 1
     
     # Read FV.NEWVAL from csv file for simulation (for IMODE = 1, 3 or 4)
-    FVs = pd.read_csv("FVs.csv", index_col=0)
+    FVs = pd.read_csv(path + "FVs.csv", index_col=0)
     alpha_SO2.value = FVs["0"].alpha_SO2
     alpha_S.value = FVs["0"].alpha_S 
     alpha_Ore.value = FVs["0"].alpha_Ore
@@ -874,17 +876,17 @@ for i in range(np.size(num)):
     plt.figure(1)
     plt.title('Feed rate')
     plt.subplot(3,1,1)
-    plt.plot(t_minute,data_input["Ore_amps"], color='tab:blue', linestyle='-', LineWidth=3,label='Ore_amps')
+    plt.plot(t_minute,data_input["Ore_amps"], color='tab:blue', linestyle='-', linewidth=3,label='Ore_amps')
     plt.ylabel('Amps')
     plt.xlabel('time[min]')
     plt.legend(loc='best') 
     plt.subplot(3,1,2)
-    plt.plot(t_minute,data_input["Sulfur_tph"], color='tab:blue', linestyle='-', LineWidth=3,label='Sulfur_tph')
+    plt.plot(t_minute,data_input["Sulfur_tph"], color='tab:blue', linestyle='-', linewidth=3,label='Sulfur_tph')
     plt.ylabel('t/h')
     plt.xlabel('time[min]')
     plt.legend(loc='best') 
     plt.subplot(3,1,3)
-    plt.plot(t_minute,data_input["O2_scfm"], color='tab:blue', linestyle='-', LineWidth=3,label='O2_scfm')
+    plt.plot(t_minute,data_input["O2_scfm"], color='tab:blue', linestyle='-', linewidth=3,label='O2_scfm')
     plt.ylabel('SCFM[kg/h]')
     plt.xlabel('time[min]')
     plt.legend(loc='best') 
@@ -892,39 +894,39 @@ for i in range(np.size(num)):
     plt.figure(2)
     plt.title('Feed Ore Composition')
     plt.subplot(3,1,1)
-    plt.plot(t_minute,data_input["Carbon_in"], color='tab:orange', linestyle='-', LineWidth=3,label='Carbon_in (wt%)')
+    plt.plot(t_minute,data_input["Carbon_in"], color='tab:orange', linestyle='-', linewidth=3,label='Carbon_in (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best') 
     plt.subplot(3,1,2)
-    plt.plot(t_minute,data_input["Sulf_in"], color='tab:orange', linestyle='-', LineWidth=3,label='Sulf_in (wt%)')
+    plt.plot(t_minute,data_input["Sulf_in"], color='tab:orange', linestyle='-', linewidth=3,label='Sulf_in (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best')     
     plt.subplot(3,1,3)
-    plt.plot(t_minute,data_input["CO3_in"], color='tab:orange', linestyle='-', LineWidth=3,label='CO3_in (wt%)')
+    plt.plot(t_minute,data_input["CO3_in"], color='tab:orange', linestyle='-', linewidth=3,label='CO3_in (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best')  
     
     # plt.figure(3)
     # plt.subplot(4,1,1)
-    # plt.plot(t_minute,data_input["level1"], color='tab:orange', linestyle='-', LineWidth=3,label='level1')
+    # plt.plot(t_minute,data_input["level1"], color='tab:orange', linestyle='-', width=3,label='level1')
     # plt.ylabel('%')
     # plt.xlabel('time[min]')
     # plt.legend(loc='best') 
     # plt.subplot(4,1,2)
-    # plt.plot(t_minute,tau1_m, color='tab:green', linestyle='-', LineWidth=3,label='Residence time 1')
+    # plt.plot(t_minute,tau1_m, color='tab:green', linestyle='-', width=3,label='Residence time 1')
     # plt.ylabel('%')
     # plt.xlabel('time[min]')
     # plt.legend(loc='best') 
     # plt.subplot(4,1,3)
-    # plt.plot(t_minute,data_input["level2"], color='tab:orange', linestyle='-', LineWidth=3,label='level2')
+    # plt.plot(t_minute,data_input["level2"], color='tab:orange', linestyle='-', width=3,label='level2')
     # plt.ylabel('%')
     # plt.xlabel('time[min]')
     # plt.legend(loc='best') 
     # plt.subplot(4,1,4)
-    # plt.plot(t_minute,tau2_m, color='tab:green', linestyle='-', LineWidth=3,label='Residence time 1')
+    # plt.plot(t_minute,tau2_m, color='tab:green', linestyle='-', width=3,label='Residence time 1')
     # plt.ylabel('%')
     # plt.xlabel('time[min]')
     # plt.legend(loc='best')  
@@ -932,17 +934,17 @@ for i in range(np.size(num)):
     plt.figure(4)
     plt.title('Off Gas Composition')
     plt.subplot(3,1,1)
-    plt.plot(t_minute,wp_og1["O2"], color='tab:blue', linestyle='-', LineWidth=3,label='og1_O2 (wt%)')
+    plt.plot(t_minute,wp_og1["O2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_O2 (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best') 
     plt.subplot(3,1,2)
-    plt.plot(t_minute,wp_og1["CO2"], color='tab:blue', linestyle='-', LineWidth=3,label='og1_CO2 (wt%)')
+    plt.plot(t_minute,wp_og1["CO2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_CO2 (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best')     
     plt.subplot(3,1,3)
-    plt.plot(t_minute,wp_og1["SO2"], color='tab:blue', linestyle='-', LineWidth=3,label='og1_SO2 (wt%)')
+    plt.plot(t_minute,wp_og1["SO2"], color='tab:blue', linestyle='-', linewidth=3,label='og1_SO2 (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best')     
@@ -950,17 +952,17 @@ for i in range(np.size(num)):
     plt.figure(5)
     plt.title('Calcine Composition')
     plt.subplot(3,1,1)
-    plt.plot(t_minute,wp_calcine2["TCM"], color='tab:red', linestyle='-', LineWidth=3,label='Calcine2_TCM (wt%)')
+    plt.plot(t_minute,wp_calcine2["TCM"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_TCM (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best') 
     plt.subplot(3,1,2)
-    plt.plot(t_minute,wp_calcine2["FeS2"], color='tab:red', linestyle='-', LineWidth=3,label='Calcine2_Sulfur (wt%)')
+    plt.plot(t_minute,wp_calcine2["FeS2"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_Sulfur (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best')     
     plt.subplot(3,1,3)
-    plt.plot(t_minute,wp_calcine2["CaCO3"], color='tab:red', linestyle='-', LineWidth=3,label='Calcine2_CO3 (wt%)')
+    plt.plot(t_minute,wp_calcine2["CaCO3"], color='tab:red', linestyle='-', linewidth=3,label='Calcine2_CO3 (wt%)')
     plt.ylabel('wt%')
     plt.xlabel('time[min]')
     plt.legend(loc='best')  
@@ -968,12 +970,12 @@ for i in range(np.size(num)):
     plt.figure(6)
     plt.title("Reactor Temperature")
     plt.subplot(2,1,1)
-    plt.plot(t_minute,T_1, color='tab:red', linestyle='-', LineWidth=3,label='T1')
+    plt.plot(t_minute,T_1, color='tab:red', linestyle='-', linewidth=3,label='T1')
     plt.ylabel('F')
     plt.xlabel('time[min]')
     plt.legend(loc='best') 
     plt.subplot(2,1,2)
-    plt.plot(t_minute,T_2, color='tab:red', linestyle='-', LineWidth=3,label='T2')
+    plt.plot(t_minute,T_2, color='tab:red', linestyle='-', linewidth=3,label='T2')
     plt.ylabel('F')
     plt.xlabel('time[min]')
     plt.legend(loc='best')     
