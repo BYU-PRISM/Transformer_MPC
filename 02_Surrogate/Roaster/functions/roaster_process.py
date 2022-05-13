@@ -803,14 +803,23 @@ class ProcessModel(GEKKO):
 #%% Run function
     def run(self, input):   
         data_tph = self.preprocessing(input)
+        self.S2.value = self.data_tph["Sulf_in"]
+        self.CO3.value = self.data_tph["CO3_in"]
+        self.TCM.value = self.data_tph["Carbon_in"]
 
-        self.Sulf_in = self.data_tph["Sulf_in"]
-        self.CO3_in = self.data_tph["CO3_in"]
-        self.Carbon_in = self.data_tph["Carbon_in"]
-        # input.Gold_in = self.data_tph["Gold_in"]
-        self.Ore_in = self.data_tph["Ore_in"]
-        self.Sulfur_in = self.data_tph["Sulfur_in"]
-        self.O2_in = self.data_tph["O2_in"]
+        self.Ore_in.value = self.data_tph["Ore_in"]
+        self.Sul_in.value = self.data_tph["Sulfur_in"]
+        self.O2_in.value = self.data_tph["O2_in"]
+        # self.Gold_in.value = Gold_in
+
+
+        # self.Sul_in.value = self.data_tph["Sulf_in"]
+        # self.CO3_in.value = self.data_tph["CO3_in"]
+        # self.Carbon_in.value = self.data_tph["Carbon_in"]
+        # # input.Gold_in = self.data_tph["Gold_in"]
+        # self.Ore_in.value = self.data_tph["Ore_in"]
+        # self.Sulfur_in.value = self.data_tph["Sulfur_in"]
+        # self.O2_in.value = self.data_tph["O2_in"]
 
         self.solve(disp=False)
 

@@ -992,15 +992,15 @@ for i in range(np.size(num)):
     df['Sulf_in'] = data_input["Sulf_in"]
     df['CO3_in'] = data_input["CO3_in"]
     
-    df['O2'] = wp_og1["O2"]
-    df['CO2'] = wp_og1["CO2"]
-    df['SO2'] = wp_og1["SO2"]
-    df['TCM'] = wp_calcine2["TCM"]
-    df['FeS2'] = wp_calcine2["FeS2"]
-    df['CaCO3'] = wp_calcine2["CaCO3"]
+    df['O2'] = wp_og1["O2"].value
+    df['CO2'] = wp_og1["CO2"].value
+    df['SO2'] = wp_og1["SO2"].value
+    df['TCM'] = wp_calcine2["TCM"].value
+    df['FeS2'] = wp_calcine2["FeS2"].value
+    df['CaCO3'] = wp_calcine2["CaCO3"].value
     
     df['T1'] = T_1
     df['T2'] = T_2
     df['Ore_amps'] = data_input["Ore_amps"]
     
-    df.to_csv('Roaster_data_training_random'+str(num[i])+'.csv')
+    df.to_pickle('Roaster_data_training_random'+str(num[i])+'.pkl')

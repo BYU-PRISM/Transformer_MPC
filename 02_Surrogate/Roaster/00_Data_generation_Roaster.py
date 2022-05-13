@@ -8,6 +8,9 @@ from gekko import GEKKO
 path = 'data/'   
 
 
+# Load data from other code to compare (just for test)
+testdata = pd.read_pickle('Roaster_data_training_random10.pkl')
+
 #%% Load CSV files
 
 # Load Thermodyanamic Data
@@ -62,7 +65,7 @@ for i in range(np.size(num)):
     print(x.shape)
     
     # nstep = np.max(t_change)+30
-    nstep = 3000
+    nstep = 245
     
       
     #%% input data
@@ -85,14 +88,24 @@ for i in range(np.size(num)):
             "O2_in_LO": 4000    
              }
     
-    # Creating time points to step changes
-    for j in range(num[i]):
-        data_input["Ore_amps"][t_change[j,0]:] = x[j,0]
-        data_input["Sulfur_tph"][t_change[j,1]:] = x[j,1]
-        data_input["O2_scfm"][t_change[j,2]:] = x[j,2]
-        data_input["Carbon_in"][t_change[j,3]:] = x[j,3]
-        data_input["Sulf_in"][t_change[j,4]:] = x[j,4]
-        data_input["CO3_in"][t_change[j,5]:] = x[j,5]
+
+    
+
+    # # Creating time points to step changes
+    # for j in range(num[i]):
+    #     data_input["Ore_amps"][t_change[j,0]:] = x[j,0]
+    #     data_input["Sulfur_tph"][t_change[j,1]:] = x[j,1]
+    #     data_input["O2_scfm"][t_change[j,2]:] = x[j,2]
+    #     data_input["Carbon_in"][t_change[j,3]:] = x[j,3]
+    #     data_input["Sulf_in"][t_change[j,4]:] = x[j,4]
+    #     data_input["CO3_in"][t_change[j,5]:] = x[j,5]
+
+    data_input["Ore_amps"] = testdata["Ore_amps"]
+    data_input["Sulfur_tph"] = testdata["Sulfur_tph"]
+    data_input["O2_scfm"] = testdata["O2_scfm"]
+    data_input["Carbon_in"] = testdata["Carbon_in"]
+    data_input["Sulf_in"] = testdata["Sulf_in"]
+    data_input["CO3_in"] = testdata["CO3_in"]
 
 
 
@@ -101,9 +114,9 @@ for i in range(np.size(num)):
 
 df = pd.DataFrame(data_input)
 input = df.to_numpy()
-input = input[:,:6]
+# input = input[:,:6]
 
-ns = 30  # Simulation Length
+ns = 100  # Simulation Length
 t = np.linspace(0, ns, ns + 1)
 delta_t = t[1] - t[0]
 
@@ -119,7 +132,7 @@ for i in range(1, ns):
 
 result = p.get_result()
 
-result["O2"]
+# result["O2"]
 
 
 # %% plotting
@@ -233,3 +246,13 @@ plt.xlabel('time[min]')
 plt.legend(loc='best')     
 
 plt.show()
+
+
+
+print("break")
+
+data1 = pd.DataFrame(data_input)
+data2 = pd.DataFrame(result)
+data_all = pd.concat((data1, data2), axis=1)
+
+data_all.to_pickle('Roaster_data_training_random_test.pkl')
