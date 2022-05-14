@@ -739,6 +739,8 @@ class ProcessModel(GEKKO):
 
         self.options.IMODE = 4
         self.options.SOLVER = 3
+
+        print(self.CO3[0])
         
     def unitconv(self, data_input):
         
@@ -802,14 +804,15 @@ class ProcessModel(GEKKO):
     
 #%% Run function
     def run(self, input):   
-        data_tph = self.preprocessing(input)
-        self.S2.value = self.data_tph["Sulf_in"]
-        self.CO3.value = self.data_tph["CO3_in"]
-        self.TCM.value = self.data_tph["Carbon_in"]
+        self.preprocessing(input)
+        print(self.data_tph["CO3_in"])
+        self.S2.VALUE = self.data_tph["Sulf_in"]
+        self.CO3.VALUE = self.data_tph["CO3_in"]
+        self.TCM.VALUE = self.data_tph["Carbon_in"]
 
-        self.Ore_in.value = self.data_tph["Ore_in"]
-        self.Sul_in.value = self.data_tph["Sulfur_in"]
-        self.O2_in.value = self.data_tph["O2_in"]
+        self.Ore_in.VALUE = self.data_tph["Ore_in"]
+        self.Sul_in.VALUE = self.data_tph["Sulfur_in"]
+        self.O2_in.VALUE = self.data_tph["O2_in"]
         # self.Gold_in.value = Gold_in
 
 
@@ -828,12 +831,13 @@ class ProcessModel(GEKKO):
     def preprocessing(self, x):
 
         data_tph = self.data_tph
-        data_tph["Ore_in"] = x[0]
+        data_tph["Ore_in"] = x[0] * 1.675786 + 208.270
         data_tph["Sulfur_in"] = x[1]
-        data_tph["O2_in"] = x[2]
-        data_tph["Carbon_in"] = x[3]
-        data_tph["Sulf_in"] = x[4]
-        data_tph["CO3_in"] = x[5]
+        data_tph["O2_in"] = x[2] * 0.002421
+
+        data_tph["Carbon_in"] = x[3] * data_tph["Ore_in"] * 1e-2
+        data_tph["Sulf_in"] = x[4] * data_tph["Ore_in"] * 1e-2
+        data_tph["CO3_in"] = x[5] * data_tph["Ore_in"] * 1e-2
 
         self.data_tph = data_tph
 

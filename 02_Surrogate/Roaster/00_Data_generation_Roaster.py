@@ -65,7 +65,7 @@ for i in range(np.size(num)):
     print(x.shape)
     
     # nstep = np.max(t_change)+30
-    nstep = 245
+    nstep = 237
     
       
     #%% input data
@@ -116,9 +116,10 @@ df = pd.DataFrame(data_input)
 input = df.to_numpy()
 # input = input[:,:6]
 
-ns = 100  # Simulation Length
+ns = 60  # Simulation Length
 t = np.linspace(0, ns, ns + 1)
-delta_t = t[1] - t[0]
+delta_t = 10
+
 
 # nu = 6
 # ny = 8
