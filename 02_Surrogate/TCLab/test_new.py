@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 import warnings
 
 # with warnings.catch_warnings():
