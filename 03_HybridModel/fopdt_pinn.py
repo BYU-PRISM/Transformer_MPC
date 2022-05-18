@@ -27,7 +27,7 @@ np.random.seed(12345)
 
 
 class SPINN(PINNSolver):
-    def __init__(self, x_r, *args, **kwargs):
+    def __init__(self, x_r, u_r, s1, s2, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Store Model Variables
@@ -36,7 +36,11 @@ class SPINN(PINNSolver):
         # Store Model Constants
 
         # Store collocation points
-        self.Xs = x_r[:]
+        self.x_r = x_r
+        self.u = u_r
+        self.s1 = s1
+        self.s2 = s2
+        self.dt = 1
         
     @tf.function
     def get_residual_loss(self):
@@ -45,7 +49,7 @@ class SPINN(PINNSolver):
     #         # tape.watch(self.t)
 
     #         # Compute current values y(t,x)
-        y = self.model(self.Xs[:])
+        y = self.model(self.x_r)
             
     #         # y_t = tape.gradient(y, self.t)
     #     # y_tt = tape.gradient(y_t, self.t)
@@ -54,12 +58,17 @@ class SPINN(PINNSolver):
 
         return self.residual_function(self.u, y)
 
-    def residual_function(self, u, y):
-        """Residual of the PDE"""
+    def residual_function(self, u, y_nn):
+        """Residual of the ODE"""
+        # y = self.s2.inverse_transform(y_nn)
+        y = (y_nn+1)/2 * (self.s2.data_max_[0]-self.s2.data_min_[0])+self.s2.data_min_[0]
+
         # res = y_tt + self.mu*y_t + self.k*y
         # y = self.model(self.Xs[:])
         y_t = (y[1:]-y[:-1]) / self.dt
-        res = self.tau * y_t + y - self.K * self.u
+        y = y[0:-1]
+        u = u[0:-1]
+        res = self.tau * y_t + y - self.K * u
         # res[0] -= qh
         # return y_t/3000.0*100.0 - self.model.alpha * y_xx/(0.1-0.001)**2*100 + self.model.beta * (y*100+20 - self.Ts)
         return 1e-2*res
@@ -89,7 +98,7 @@ model_params['Xscale'] = s1
 model_params['yscale'] = s2
 model_params['window'] = window
 
-dump(model_params, open(path + 'model_param.pkl', 'wb'))
+dump(model_params, open('model_param.pkl', 'wb'))
 
 
 
@@ -113,9 +122,34 @@ dump(model_params, open(path + 'model_param.pkl', 'wb'))
 # print(x.shape, y.shape)
 
 # slice out a small number of points from the LHS of the domain
-x_data = x[0:200:20][:, None]
-y_data = y[0:200:20][:, None]
-print(x_data.shape, y_data.shape)
+# x_data = x[0:200:20][:, None]
+# y_data = y[0:200:20][:, None]
+# print(x_data.shape, y_data.shape)
+
+nstep = Xs.shape[0]
+val_ratio = 0.5
+cut_index = np.int(nstep*val_ratio) # index number to separate the training and validation set
+print(cut_index)
+Xs_train = Xs[0:cut_index]
+Ys_train = Ys[0:cut_index]
+Xs_val = Xs[cut_index:]
+Ys_val = Ys[cut_index:]
+
+X_train = []
+Y_train = []
+for i in range(window,len(Xs_train)):
+    X_train.append(Xs_train[i-window:i,:])
+    Y_train.append(Ys_train[i])
+
+X_val = []
+Y_val = []
+for i in range(window,len(Xs_val)):
+    X_val.append(Xs_val[i-window:i,:])
+    Y_val.append(Ys_val[i])
+
+# Reshape data to format accepted by LSTM
+X_train, Y_train = np.array(X_train), np.array(Y_train)
+X_val, Y_val = np.array(X_val), np.array(Y_val)
 
 
 # # Initialize LSTM model
@@ -129,8 +163,8 @@ model_lstm.add(Dropout(0.2))
 model_lstm.add(LSTM(units=100))
 model_lstm.add(Dropout(0.2))
 model_lstm.add(Dense(units=Y_train.shape[1])) #units = number of outputs
-model_lstm.compile(optimizer = 'adam', loss = 'mean_squared_error',\
-              metrics = ['accuracy'])
+# model_lstm.compile(optimizer = 'adam', loss = 'mean_squared_error',\
+            #   metrics = ['accuracy'])
 # Allow for early exit
 es_lstm = EarlyStopping(monitor='loss',mode='min',verbose=1,patience=10)
 
@@ -158,12 +192,22 @@ es_lstm = EarlyStopping(monitor='loss',mode='min',verbose=1,patience=10)
 # model.add(tf.keras.layers.Dense(units=layers[-1], kernel_initializer='glorot_normal')
 #           )
 
-x_physics = x[::5][:, None]
-y_physics = y[::5][:, None]
-x_physics = tf.convert_to_tensor(x_physics.numpy(), dtype=DTYPE)
-y_physics = tf.convert_to_tensor(y_physics.numpy(), dtype=DTYPE)
 
-solver = SPINN(model=model, x_r=x_physics, is_pinn=True)
+# x_physics = x[::5][:, None]
+# y_physics = y[::5][:, None]
+# x_physics = tf.convert_to_tensor(x_physics.numpy(), dtype=DTYPE)
+# y_physics = tf.convert_to_tensor(y_physics.numpy(), dtype=DTYPE)
+
+# x_physics = data["u"]
+# y_physics = data["y"]
+# x_physics = tf.convert_to_tensor(x_physics.numpy(), dtype=DTYPE)
+# y_physics = tf.convert_to_tensor(y_physics.numpy(), dtype=DTYPE)
+
+u_r = data["u"].to_numpy()[window:800,None]
+u_r = tf.convert_to_tensor(u_r, DTYPE)
+
+
+solver = SPINN(model=model_lstm, x_r=X_train,u_r=u_r, s1=s1, s2=s2, is_pinn=True)
 
 # # Choose step sizes aka learning rate
 # lr = tf.keras.optimizers.schedules.PiecewiseConstantDecay([1000, 5000], [1e-3, 1e-4, 1e-5])
@@ -171,18 +215,19 @@ solver = SPINN(model=model, x_r=x_physics, is_pinn=True)
 # Solve with Adam optimizer
 optim = tf.keras.optimizers.Adam()
 
-x_data = tf.convert_to_tensor(x_data.numpy(), DTYPE)
-y_data = tf.convert_to_tensor(y_data.numpy(), DTYPE)
+X_train = tf.convert_to_tensor(X_train, DTYPE)
+Y_train = tf.convert_to_tensor(Y_train, DTYPE)
 
-solver.solve_with_tf_optimizer(optim, x_data, y_data, n_step=5000)
+# solver.solve_with_tf_optimizer(optim, X_train, Y_train, n_step=300)
 solver.is_pinn = True
-solver.solve_with_tf_optimizer(optim, x_physics, y_physics, n_step=18000)
+solver.solve_with_tf_optimizer(optim, X_train, Y_train, n_step=300)
 
-solver.solve_with_scipy_optimizer(x_physics, y_physics, method='L-BFGS-B')
+solver.solve_with_scipy_optimizer(X_train, Y_train, method='L-BFGS-B')
 # solver.solve_with_scipy_optimizer(x_physics, y_physics, method='SLSQP')
 
-yp = model(x)
+yp = solver.model(X_train)
+y_pinn = s2.inverse_transform(yp)
 
-plt.plot(x, yp)
-plt.plot(x, y, '-.')
+plt.plot(y_pinn)
+plt.plot(data["y"].to_numpy(), '-.')
 plt.show()

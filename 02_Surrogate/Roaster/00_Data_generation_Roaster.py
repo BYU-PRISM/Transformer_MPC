@@ -68,7 +68,7 @@ for i in range(np.size(num)):
     nstep = 237
     
       
-    #%% input data
+    # #%% input data
     
     data_input = {
             "Ore_amps" : np.ones(nstep)*90,
@@ -117,7 +117,7 @@ input = df.to_numpy()
 # input = input[:,:6]
 
 ns = 60  # Simulation Length
-t = np.linspace(0, ns, ns + 1)
+# t = np.linspace(0, ns, ns + 1)
 delta_t = 10
 
 
