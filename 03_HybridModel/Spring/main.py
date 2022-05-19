@@ -1,4 +1,4 @@
-from PINN.pinn_solver import PINNSolver
+from pinn_solver_old import PINNSolver
 import tensorflow as tf
 
 import numpy as np

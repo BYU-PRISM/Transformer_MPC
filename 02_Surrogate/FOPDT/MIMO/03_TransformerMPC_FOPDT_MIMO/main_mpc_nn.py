@@ -111,7 +111,7 @@ for i in range(window, ns):
     uhat = m.run(uhat, u_window, y_window, sp[i])
     u[i + 1] = uhat[0]
 
-    yp_nn[i + 1] = m.RunNN(uhat, u_window, y_window, sp[i]).T
+    # yp_nn[i + 1] = m.RunNN(uhat, u_window, y_window, sp[i]).T
     # delta = u[i+1] - u[i]
 
     # if np.abs(delta) >= maxmove:

@@ -83,6 +83,7 @@ class SPINN(PINNSolver):
 
 # Load Data
 data = pd.read_pickle('open_loop_data_SISO.pkl')
+data = data[0:100]
 
 window = 5
 
@@ -203,7 +204,7 @@ es_lstm = EarlyStopping(monitor='loss',mode='min',verbose=1,patience=10)
 # x_physics = tf.convert_to_tensor(x_physics.numpy(), dtype=DTYPE)
 # y_physics = tf.convert_to_tensor(y_physics.numpy(), dtype=DTYPE)
 
-u_r = data["u"].to_numpy()[window:800,None]
+u_r = data["u"].to_numpy()[window:Xs_train.shape[0],None]
 u_r = tf.convert_to_tensor(u_r, DTYPE)
 
 
@@ -220,14 +221,14 @@ Y_train = tf.convert_to_tensor(Y_train, DTYPE)
 
 # solver.solve_with_tf_optimizer(optim, X_train, Y_train, n_step=300)
 solver.is_pinn = True
-solver.solve_with_tf_optimizer(optim, X_train, Y_train, n_step=300)
+solver.solve_with_tf_optimizer(optim, X_train, Y_train, n_step=100)
 
-solver.solve_with_scipy_optimizer(X_train, Y_train, method='L-BFGS-B')
+# solver.solve_with_scipy_optimizer(X_train, Y_train, method='L-BFGS-B')
 # solver.solve_with_scipy_optimizer(x_physics, y_physics, method='SLSQP')
 
 yp = solver.model(X_train)
 y_pinn = s2.inverse_transform(yp)
 
 plt.plot(y_pinn)
-plt.plot(data["y"].to_numpy(), '-.')
+plt.plot(data["y"].to_numpy()[window:y_pinn.shape[0]], '-.')
 plt.show()
