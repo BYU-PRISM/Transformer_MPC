@@ -95,7 +95,7 @@ class Mpc_nn:
 
         # u_hat0 = np.ones(self.M) * ui
         start = time.time()
-        bnds = np.array([[0, 3], [0, 3], [0, 3], [0, 3], [0, 3], [0, 3], [0, 3], [0, 3]])
+        bnds = np.array([[0, 60], [0, 60], [0, 60], [0, 60], [0, 60], [0, 60], [0, 60], [0, 60]])
         # solution = minimize(self.objective,ui,method='SLSQP', args=(yp,sp))
         # solution = minimize(self.MPCobj_nn, uhat, method='SLSQP',bounds=bnds,args=(u_window, y_window, sp),options={'eps': 1e-06, 'ftol': 1e-01})
         solution = minimize(self.MPCobj_nn, uhat, method='SLSQP', bounds=bnds, args=(u_window, y_window, sp),

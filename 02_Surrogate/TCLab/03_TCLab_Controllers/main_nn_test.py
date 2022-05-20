@@ -29,7 +29,11 @@ from keras.layers import Dropout
 from keras.callbacks import EarlyStopping
 from keras.models import load_model
 
-import tclab
+# import tclab
+
+from tclab import TCLabModel as TCLab
+
+
 
 # Load NN model parameters and MinMaxScaler
 model_params = load(open('model_param_MIMO.pkl', 'rb'))
@@ -91,14 +95,8 @@ yp = np.zeros((ns + 1, ny))
 yp_nn = np.zeros((ns + 1, ny, P))
 
 
-
-
-
-
-
-
 # p = ProcessModel(delta_t)
-m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=0, model_one=model_trans_one, model_multi=model_trans_multi)
+m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
 # multistep = 0 : sequential onestep prediction MPC
 # multistep = 1 : simultaneous multistep prediction MPC
 
@@ -113,9 +111,7 @@ Q1_arr = np.zeros((P*60))
 Q2_arr = np.zeros((P*60))
 
 
-tsim = 15*60 # time in sec
-
-
+tsim = 10*60 # time in sec
 
 
 ## Get initial data
@@ -123,10 +119,9 @@ tsim = 15*60 # time in sec
 
 
 
-lab = tclab.TCLab()
 
 
-import pickle
+
 
 
 print (T1_arr, Q1_arr)
@@ -167,50 +162,55 @@ T1_arr = TCL_data.iloc[:,2]
 T2_arr = TCL_data.iloc[:,3]
 
 
-for i in range(tsim):
-    t_in = time.time()
-    T1 = lab.T1
-    T2 = lab.T2
-    Q1 = lab.Q1()
-    Q2 = lab.Q2()
+# lab = tclab.TCLab()
+with TCLab() as lab:
 
-    T1_arr = np.append(T1_arr,T1)
-    T2_arr = np.append(T2_arr,T2)
-    Q1_arr = np.append(Q1_arr,Q1)
-    Q2_arr = np.append(Q2_arr,Q2)
+    for i in range(tsim):
+        t_in = time.time()
+        T1 = lab.T1
+        T2 = lab.T2
+        Q1 = lab.Q1()
+        Q2 = lab.Q2()
 
-    u = np.vstack((Q1_arr,Q2_arr)).T
-    y = np.vstack((T1_arr,T2_arr)).T
-    target = np.array([T1_set,T2_set]).T
-    
-    
-    if i%30 == 0:
+        T1_arr = np.append(T1_arr,T1)
+        T2_arr = np.append(T2_arr,T2)
+        Q1_arr = np.append(Q1_arr,Q1)
+        Q2_arr = np.append(Q2_arr,Q2)
+
+        u = np.vstack((Q1_arr,Q2_arr)).T
+        y = np.vstack((T1_arr,T2_arr)).T
+        target = np.array([T1_set,T2_set]).T
         
-        u_window = u[-60*P::30]
-        y_window = y[-60*P::30]
         
-        uhat = m.run(uhat, u_window, y_window, sp[i])
+        if i%30 == 0:
+            
+            u_window = u[-30*window::30]
+            y_window = y[-30*window::30]
+            
+            uhat = m.run(uhat, u_window, y_window, sp[i])
 
-        lab.Q1(uhat[0][0])
-        lab.Q2(uhat[1][0])
+            lab.Q1(uhat[0][0])
+            lab.Q2(uhat[0][1])
 
-    t_out = time.time()
-    time.sleep(1-(t_out-t_in))
+            print(uhat[0])
 
-
-
-# plt.plot(t, yp)
-plt.subplot(2, 1, 1)
-plt.plot(t, y[:, 0])
-plt.plot(t, y[:, 1])
-# plt.plot(t, yp_nn[:, :, 0], '-.')
-plt.step(t, sp[:, 0])
-plt.step(t, sp[:, 1])
+        t_out = time.time()
+        # time.sleep(1-(t_out-t_in))
 
 
-plt.subplot(2, 1, 2)
-plt.step(t, u[:, 0])
-plt.step(t, u[:, 1])
-plt.show()
 
-print("break point")
+    # plt.plot(t, yp)
+    plt.subplot(2, 1, 1)
+    plt.plot(t, y[:, 0])
+    plt.plot(t, y[:, 1])
+    # plt.plot(t, yp_nn[:, :, 0], '-.')
+    plt.step(t, sp[:, 0])
+    plt.step(t, sp[:, 1])
+
+
+    plt.subplot(2, 1, 2)
+    plt.step(t, u[:, 0])
+    plt.step(t, u[:, 1])
+    plt.show()
+
+    print("break point")
