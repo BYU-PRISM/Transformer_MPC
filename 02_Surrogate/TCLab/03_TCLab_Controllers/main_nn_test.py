@@ -20,7 +20,6 @@ from sklearn.preprocessing import MinMaxScaler
 import time
 
 
-
 # For LSTM model
 import tensorflow as tf
 from keras.models import Sequential
