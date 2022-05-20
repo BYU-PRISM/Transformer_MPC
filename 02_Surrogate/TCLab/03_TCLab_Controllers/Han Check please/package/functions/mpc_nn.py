@@ -70,8 +70,8 @@ class Mpc_nn:
         u_hat0 = np.append(u_window[-1], u_hat)  # prepare for 'rate of change of MV' in the objective function
         u_hat0 = u_hat0.reshape((-1, self.nu))
 
-        W_CV = np.array([100, 100]) # adjust controller speed, 높으면 빨리 따라감
-        W_MV = np.array([10, 10]) # 낮을수록 예측값이 빨리 따라감
+        W_CV = np.array([100, 100]) # Adjust controller overshoot, high = fast catch SP
+        W_MV = np.array([10, 10]) # low = fast catch SP
 
         pred_nn = {}
         if self.multistep == 0:

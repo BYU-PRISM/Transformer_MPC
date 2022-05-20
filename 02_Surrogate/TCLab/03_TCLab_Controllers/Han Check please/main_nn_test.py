@@ -73,6 +73,7 @@ T2_set = 50
 # Setpoint Sequence
 sp1 = np.zeros(ns)
 sp1 = sp1+T1_set
+
 # sp1[900:] = 30
 # sp1[1500:] = 40
 # sp1[:] = 60
@@ -80,7 +81,11 @@ sp1 = sp1+T1_set
 
 sp2 = np.zeros(ns)
 sp2 = sp2+T2_set
-sp2[80:] = 1.5
+
+# sp2[80:] = 20
+# sp2[900:] = 30
+# sp2[1500:] = 40
+# sp2[:] = 60
 
 
 
@@ -149,7 +154,7 @@ for i in range(ns - len(TCL_data)):
         print(uhat[0], "\n", file=f)
         print(uhat[0], "\n")
 
-    print(i, "sec  ", "T1:", T1_arr[300+i], "  H1:", Q1_arr[300+i], file=f)
+    print(i, "sec  ", "T1:", T1_arr[300+i], "T2:",  "  H1:", Q1_arr[300+i], file=f)
     print(i, "sec  ", "T1:", T1_arr[300+i], "  H1:", Q1_arr[300+i])
     
     
@@ -161,6 +166,9 @@ lab.close()
 # Save python console
 f.close()
 
+
+sec = ns
+sec = str(sec)
 
 plt.subplot(2, 1, 1)
 plt.plot(t, y[:, 0], label='T1')
@@ -176,7 +184,7 @@ plt.legend()
 plt.tight_layout()
 
 plt.show()
-plt.savefig('MPC_Controller_' + ns + 's.png')
+plt.savefig('MPC_Controller_' + sec + 's.png')
 
 
 print("break point")
