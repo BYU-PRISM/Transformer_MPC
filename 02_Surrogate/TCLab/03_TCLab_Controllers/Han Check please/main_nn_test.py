@@ -49,7 +49,7 @@ model_lstm_multi = load_model('MPC_MIMO_TCLab_multistep_LSTM.h5')
 model_trans_multi = load_model('MPC_MIMO_TCLab_multistep_Trans.h5')
 
 
-ns = 20 * 60  # Simulation Length, min * 60
+ns = 6 * 60  # Simulation Length, min * 60
 
 
 t = np.linspace(0, ns-1, ns)
@@ -154,9 +154,10 @@ for i in range(ns - len(TCL_data)):
         print(uhat[0], "\n", file=f)
         print(uhat[0], "\n")
 
-    print(i, "sec  ", "T1:", T1_arr[300+i], "T2:",  "  H1:", Q1_arr[300+i], file=f)
-    print(i, "sec  ", "T1:", T1_arr[300+i], "  H1:", Q1_arr[300+i])
-    
+    print(i, "sec  ", "T1:", T1_arr[300+i], "  T2:", T2_arr[300+i],
+          "    H1:", Q1_arr[300+i], "  H2:", Q2_arr[300+i], file=f)
+    print(i, "sec  ", "T1:", T1_arr[300+i], "  T2:", T2_arr[300+i],
+          "    H1:", Q1_arr[300+i], "  H2:", Q2_arr[300+i])    
     
     time.sleep(1)
     
