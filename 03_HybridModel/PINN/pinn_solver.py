@@ -40,7 +40,8 @@ class PINNSolver:
             # tf.print(self.loss2)
             # loss = self.loss2
 
-            loss = self.loss1 + self.loss2
+            # loss = self.loss1 + self.loss2
+            loss = self.loss2
 
         else:
             loss = self.loss1
@@ -163,7 +164,7 @@ class PINNSolver:
                         jac=True,
                         method=method,
                         callback=self.callback,
-                        options={'maxiter': 10000000,
+                        options={'maxiter': 5,
                                  'maxfun': 5000000,
                                  'maxcor': 5,
                                  'maxls': 5,

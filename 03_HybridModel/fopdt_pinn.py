@@ -71,7 +71,7 @@ class SPINN(PINNSolver):
         res = self.tau * y_t + y - self.K * u
         # res[0] -= qh
         # return y_t/3000.0*100.0 - self.model.alpha * y_xx/(0.1-0.001)**2*100 + self.model.beta * (y*100+20 - self.Ts)
-        return 1e-2*res
+        return 1e1*res
 
     def callback(self, *args):
         if self.iter % 10 == 0:
@@ -223,7 +223,7 @@ Y_train = tf.convert_to_tensor(Y_train, DTYPE)
 solver.is_pinn = True
 solver.solve_with_tf_optimizer(optim, X_train, Y_train, n_step=100)
 
-# solver.solve_with_scipy_optimizer(X_train, Y_train, method='L-BFGS-B')
+solver.solve_with_scipy_optimizer(X_train, Y_train, method='L-BFGS-B')
 # solver.solve_with_scipy_optimizer(x_physics, y_physics, method='SLSQP')
 
 yp = solver.model(X_train)
