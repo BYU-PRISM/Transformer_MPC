@@ -7,7 +7,7 @@ warnings.filterwarnings("ignore")
 from sklearn import preprocessing
 
 # from functions.process_fopdt import ProcessModel
-from package.functions.mpc_nn import Mpc_nn
+from functions.mpc_nn import Mpc_nn
 
 import numpy as np
 import pandas as pd
