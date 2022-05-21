@@ -30,7 +30,7 @@ from keras.callbacks import EarlyStopping
 from keras.models import load_model
 
 import tclab
-# TCLab = tclab.setup(connected=False, speedup=1)
+# TCLab = tclab.setup(connected=False, speedup=2)
 
 lab = tclab.TCLab()
 # with TCLab() as lab:
@@ -69,11 +69,11 @@ sp2_init = lab.T2
 
 # Setpoint Sequence
 sp1 = np.ones(ns) * sp1_init
-sp1[window*30:] = 60
+sp1[window*30:] = 50
 sp1[6*60:] = 50
 
 sp2 = np.ones(ns) * sp2_init
-sp2[window*30:] = 50
+sp2[window*30:] = 40
 sp2[7*60:] = 50
 
 
@@ -82,7 +82,7 @@ maxmove = 1
 
 # Process simulation
 yp = np.zeros((ns, ny))
-yp_nn = np.zeros((ns, ny, P))
+yp_nn = np.zeros((ny, ))
 
 m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
 
@@ -102,7 +102,15 @@ uhat = np.zeros((M,nu))
 
 lab.LED(70)
 
+# Create plot
+nplot = 2
+for i in range(nplot):
+    plt.figure(i)
+    plt.ion()
+plt.show()
+
 for i in range(30*window, ns):
+
     T1 = lab.T1
     T2 = lab.T2
     Q1 = lab.Q1()
@@ -117,15 +125,19 @@ for i in range(30*window, ns):
     y = np.vstack((T1_arr,T2_arr)).T
     sp = np.array([sp1, sp2]).T
 
-    if i%5 == 0:
+    if i%20 == 0:
         
-        u_window = u[-30*window::30]
-        y_window = y[-30*window::30]
+        u_window = u[-30*(window-1)-1::30]
+        y_window = y[-30*(window-1)-1::30]
         
-        uhat = m.run(uhat, u_window, y_window, sp[i])
+        ffwd = np.array([T1,T2]) - yp_nn 
+        uhat = m.run(uhat, u_window, y_window, sp[i], ffwd)
 
         lab.Q1(uhat[0][0])
         lab.Q2(uhat[0][1])
+
+        yp_nn = m.RunNN(uhat, u_window, y_window, sp[i])[0]
+        
         
         print(uhat[0], "\n")
     
@@ -136,15 +148,38 @@ for i in range(30*window, ns):
         "   T1:", T1_arr[i], "  T2:", T2_arr[i],
         "    H1:", Q1_arr[i], "  H2:", Q2_arr[i])
     
-    time.sleep(1)
+    time.sleep(0.5)
+
+    for j in range(nplot):
+        plt.figure(j)
+        plt.clf()
     
-lab.LED(0)
-lab.close()
+    plt.figure(0)
+    plt.subplot(2,1,1)
+    plt.plot(t[0:i+1],T1_arr, label = "T1")
+    plt.plot(t[0:i+1],sp1[0:i+1], 'r--',label = "SP1")
+    plt.subplot(2,1,2)
+    plt.plot(t[0:i+1],T2_arr, label = "T2")
+    plt.plot(t[0:i+1],sp2[0:i+1], 'r--',label = "SP2")
+    plt.draw()
+    plt.pause(0.1)
 
-sec = ns
-sec = str(sec)
+    
+    plt.figure(1)
+    plt.subplot(2,1,1)
+    plt.plot(t[0:i+1],Q1_arr, label = "Q1")
+    plt.legend()
+    # plt.yticks([])
+    plt.subplot(2,1,2)
+    plt.plot(t[0:i+1],Q2_arr, label = "Q2")
+    plt.legend()
+    # plt.yticks([])
+    plt.draw()
+    plt.pause(0.1)
+plt.show()
+    
 
-plt.figure()
+plt.figure(3)
 plt.subplot(2, 1, 1)
 plt.plot(t, y[:, 0], 'c-', label='T1')
 plt.plot(t, y[:, 1], 'm-', label='T2')
@@ -158,8 +193,13 @@ plt.step(t, u[:, 1], 'g-', label='H2')
 plt.legend()
 
 plt.tight_layout()
-
 plt.show()
 
+
+lab.LED(0)
+lab.close()
+
+# sec = ns
+# sec = str(sec)
 
 print("break point")
