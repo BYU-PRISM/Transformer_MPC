@@ -7,7 +7,7 @@ warnings.filterwarnings("ignore")
 from sklearn import preprocessing
 
 # from functions.process_fopdt import ProcessModel
-from functions.mpc_nn import Mpc_nn
+from mpc_nn import Mpc_nn
 
 import numpy as np
 import pandas as pd
@@ -148,7 +148,7 @@ for i in range(30*window, ns):
         "   T1:", T1_arr[i], "  T2:", T2_arr[i],
         "    H1:", Q1_arr[i], "  H2:", Q2_arr[i])
     
-    time.sleep(0.5)
+    time.sleep(1)
 
     for j in range(nplot):
         plt.figure(j)
