@@ -49,7 +49,7 @@ model_lstm_multi = load_model('MPC_MIMO_TCLab_multistep_LSTM.h5')
 model_trans_multi = load_model('MPC_MIMO_TCLab_multistep_Trans.h5')
 
 
-ns = 6 * 60  # Simulation Length, min * 60
+ns = 30 * 60  # Simulation Length, min * 60
 
 
 t = np.linspace(0, ns-1, ns)
@@ -67,25 +67,27 @@ u = np.zeros((ns, nu))
 
 
 ## Set initial set_temp
-T1_set = 60
-T2_set = 50
+T1_set = 52
+T2_set = 24
 
 # Setpoint Sequence
 sp1 = np.zeros(ns)
 sp1 = sp1+T1_set
 
-# sp1[900:] = 30
-# sp1[1500:] = 40
-# sp1[:] = 60
-
+sp1[9*60:] = 32
+sp1[14*60:] = 44
+sp1[27*60:] = 23
+# sp1[40*60:] = 30
+# sp1[50*60:] = 45
 
 sp2 = np.zeros(ns)
 sp2 = sp2+T2_set
 
-# sp2[80:] = 20
-# sp2[900:] = 30
-# sp2[1500:] = 40
-# sp2[:] = 60
+sp2[8*60:] = 50
+sp2[16*60:] = 42
+sp2[24*60:] = 31
+# sp2[40*60:] = 45
+# sp2[55*60:] = 25
 
 
 
@@ -153,11 +155,16 @@ for i in range(ns - len(TCL_data)):
         
         print(uhat[0], "\n", file=f)
         print(uhat[0], "\n")
-
-    print(i, "sec  ", "T1:", T1_arr[300+i], "  T2:", T2_arr[300+i],
+    
+    sec = i + 300
+    Min = sec // 60
+    sec %= 60
+    print(Min, "min", sec, "sec   SP1:", sp1[300+i], " SP2:", sp2[300+i], 
+          "   T1:", T1_arr[300+i], "  T2:", T2_arr[300+i],
           "    H1:", Q1_arr[300+i], "  H2:", Q2_arr[300+i], file=f)
-    print(i, "sec  ", "T1:", T1_arr[300+i], "  T2:", T2_arr[300+i],
-          "    H1:", Q1_arr[300+i], "  H2:", Q2_arr[300+i])    
+    print(Min, "min", sec, "sec   SP1:", sp1[300+i], " SP2:", sp2[300+i], 
+          "   T1:", T1_arr[300+i], "  T2:", T2_arr[300+i],
+          "    H1:", Q1_arr[300+i], "  H2:", Q2_arr[300+i])
     
     time.sleep(1)
     
