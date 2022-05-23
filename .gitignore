@@ -130,9 +130,9 @@ dmypy.json
 
 
 Figures/
-*.eps
-*.gif
-*.jpg
-*.png
-*.svg
+#*.eps
+#*.gif
+#*.jpg
+#*.png
+#*.svg
 .DS_Store
