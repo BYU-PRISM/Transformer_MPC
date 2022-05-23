@@ -35,6 +35,16 @@ import tclab
 lab = tclab.TCLab()
 # with TCLab() as lab:
 
+# Make an MP4 animation?
+make_mp4 = True
+if make_mp4:
+    import imageio  # required to make animation
+    import os
+    try:
+        os.mkdir('./figures')
+    except:
+        pass
+
 # Load NN model parameters and MinMaxScaler
 model_params = load(open('model_param_MIMO.pkl', 'rb'))
 s1 = model_params['Xscale']
@@ -172,7 +182,28 @@ for i in range(30*window, ns):
     plt.draw()
     plt.pause(0.1)
 
+    if make_mp4:
+        filename='./figures/plot_'+str(i+10000)+'.png'
+        plt.savefig(filename)
+
 plt.show()
+
+lab.LED(0)
+lab.close()
+
+# generate mp4 from png figures in batches of 350
+if make_mp4:
+    images = []
+    iset = 0
+    for i in range(1,ns):
+        filename='./figures/plot_'+str(i+10000)+'.png'
+        images.append(imageio.imread(filename))
+        if ((i+1)%350)==0:
+            imageio.mimsave('results_'+str(iset)+'.mp4', images)
+            iset += 1
+            images = []
+    if images!=[]:
+        imageio.mimsave('results_'+str(iset)+'.mp4', images)
     
 
 # Read data file
@@ -187,28 +218,3 @@ tcL_data = pd.DataFrame(
 
 tcL_data.to_pickle('TCLab_MIMO_Control_multi_trans.pkl')
 
-
-# plt.figure(3)
-# plt.subplot(2, 1, 1)
-# plt.plot(t, y[:, 0], 'c-', label='T1')
-# plt.plot(t, y[:, 1], 'm-', label='T2')
-# plt.step(t, sp1, 'r--', label='SP1')
-# plt.step(t, sp2, 'g--', label='SP2')
-# plt.legend()
-
-# plt.subplot(2, 1, 2)
-# plt.step(t, u[:, 0], 'r-', label='H1')
-# plt.step(t, u[:, 1], 'g-', label='H2')
-# plt.legend()
-
-# plt.tight_layout()
-# plt.show()
-
-
-lab.LED(0)
-lab.close()
-
-# sec = ns
-# sec = str(sec)
-
-print("break point")
