@@ -36,7 +36,7 @@ lab = tclab.TCLab()
 # with TCLab() as lab:
 
 # Make an MP4 animation?
-make_mp4 = True
+make_mp4 = False
 if make_mp4:
     import imageio  # required to make animation
     import os
@@ -110,6 +110,8 @@ T2_arr = T2_arr + (lab.T2 - np.average(T2_arr))
 
 uhat = np.zeros((M,nu))
 
+elapsed = np.zeros(ns)
+
 lab.LED(70)
 
 # Create plot
@@ -145,7 +147,11 @@ for i in range(30*window, ns):
         else:    
             ffwd = np.array([T1,T2]) - yp_nn 
         
+        start = time.time()
         uhat = m.run(uhat, u_window, y_window, sp[i], ffwd)
+        end = time.time()
+        elapsed[i] = end - start
+        print(elapsed)
 
         lab.Q1(uhat[0][0])
         lab.Q2(uhat[0][1])
@@ -199,7 +205,8 @@ tcL_data = pd.DataFrame(
          "T1": T1_arr,
          "T2": T2_arr,
          "SP1": sp1,
-         "SP2": sp2},
+         "SP2": sp2,
+         "elapsed":elapsed},
         index = np.linspace(1,ns,ns,dtype=int))
 
 tcL_data.to_pickle('TCLab_MIMO_Control_multi_trans.pkl')
@@ -211,7 +218,7 @@ if make_mp4:
     for i in range(window*30,ns):
         filename='./figures/plot_'+str(i+10000)+'.png'
         images.append(imageio.imread(filename))
-        if ((i+1)%10)==0:
+        if ((i+1)%1000)==0:
             imageio.mimsave('results_'+str(iset)+'.mp4', images)
             iset += 1
             images = []
