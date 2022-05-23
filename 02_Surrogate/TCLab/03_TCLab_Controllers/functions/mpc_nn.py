@@ -61,21 +61,22 @@ class Mpc_nn:
         else:
             Xin = Xsq.reshape((1, self.window + self.P, np.shape(Xsq)[1]))
             Ysq = self.model_multi(Xin)[0]
-            # print(Ysq)
+            
 
         
 
         Ytu = self.s2.inverse_transform(Ysq)
         Xtu = self.s1.inverse_transform(Xsq)
 
-        # print(Ytu)
+      
 
         u_hat0 = np.append(u_window[-1], u_hat)  # prepare for 'rate of change of MV' in the objective function
         u_hat0 = u_hat0.reshape((-1, self.nu))
 
-        W_CV = np.array([100, 200]) # Adjust controller overshoot, high = faster catch SP
-        W_MV = np.array([10, 20]) # low = faster catch SP
-
+        ###########################
+        W_CV = np.array([50, 20]) # Adjust controller overshoot, high = faster catch SP
+        W_MV = np.array([1, 1]) # low = faster catch SP
+        #############################
         pred_nn = {}
         if self.multistep == 0:
             pred_nn["y_hat"] = Ytu[self.window:]
@@ -102,7 +103,7 @@ class Mpc_nn:
         # solution = minimize(self.objective,ui,method='SLSQP', args=(yp,sp))
         # solution = minimize(self.MPCobj_nn, uhat, method='SLSQP',bounds=bnds,args=(u_window, y_window, sp),options={'eps': 1e-06, 'ftol': 1e-01})
         solution = minimize(self.MPCobj_nn, uhat, method='SLSQP', bounds=bnds, args=(u_window, y_window, sp, ffwd),
-                            options={'eps': 1e-01,
+                            options={'eps': 1e-02,
                                      'maxiter': 100,
                                      'ftol': 1e-01})
         # 

@@ -50,7 +50,7 @@ model_lstm_multi = load_model('MPC_MIMO_TCLab_multistep_LSTM_110000.h5')
 model_trans_multi = load_model('MPC_MIMO_TCLab_multistep_Trans_110000.h5')
 
 
-ns = 10 * 60  # Simulation Length, min * 60
+ns = 15 * 60  # Simulation Length, min * 60
 t = np.linspace(0, ns-1, ns)
 
 nu = 2
@@ -69,12 +69,12 @@ sp2_init = lab.T2
 
 # Setpoint Sequence
 sp1 = np.ones(ns) * sp1_init
-sp1[window*30:] = 50
-sp1[6*60:] = 50
+sp1[window*30-1:] = 40
+sp1[6*60:] = 32
 
 sp2 = np.ones(ns) * sp2_init
-sp2[window*30:] = 40
-sp2[7*60:] = 50
+sp2[window*30-1:] = 35
+sp2[8*60:] = 30
 
 
 # Controller setting
@@ -103,7 +103,7 @@ uhat = np.zeros((M,nu))
 lab.LED(70)
 
 # Create plot
-nplot = 2
+nplot = 1
 for i in range(nplot):
     plt.figure(i)
     plt.ion()
@@ -125,12 +125,16 @@ for i in range(30*window, ns):
     y = np.vstack((T1_arr,T2_arr)).T
     sp = np.array([sp1, sp2]).T
 
-    if i%20 == 0:
+    if i%10 == 0:
         
         u_window = u[-30*(window-1)-1::30]
         y_window = y[-30*(window-1)-1::30]
         
-        ffwd = np.array([T1,T2]) - yp_nn 
+        if i == window *30: # to exclude ffwd for the first mpc run (bc there is no y_nn)
+            ffwd = 0
+        else:    
+            ffwd = np.array([T1,T2]) - yp_nn 
+        
         uhat = m.run(uhat, u_window, y_window, sp[i], ffwd)
 
         lab.Q1(uhat[0][0])
@@ -158,42 +162,47 @@ for i in range(30*window, ns):
     plt.subplot(2,1,1)
     plt.plot(t[0:i+1],T1_arr, label = "T1")
     plt.plot(t[0:i+1],sp1[0:i+1], 'r--',label = "SP1")
-    plt.subplot(2,1,2)
     plt.plot(t[0:i+1],T2_arr, label = "T2")
     plt.plot(t[0:i+1],sp2[0:i+1], 'r--',label = "SP2")
-    plt.draw()
-    plt.pause(0.1)
-
-    
-    plt.figure(1)
-    plt.subplot(2,1,1)
-    plt.plot(t[0:i+1],Q1_arr, label = "Q1")
     plt.legend()
-    # plt.yticks([])
     plt.subplot(2,1,2)
+    plt.plot(t[0:i+1],Q1_arr, label = "Q1")
     plt.plot(t[0:i+1],Q2_arr, label = "Q2")
     plt.legend()
-    # plt.yticks([])
     plt.draw()
     plt.pause(0.1)
+
 plt.show()
     
 
-plt.figure(3)
-plt.subplot(2, 1, 1)
-plt.plot(t, y[:, 0], 'c-', label='T1')
-plt.plot(t, y[:, 1], 'm-', label='T2')
-plt.step(t, sp1, 'r--', label='SP1')
-plt.step(t, sp2, 'g--', label='SP2')
-plt.legend()
+# Read data file
+tcL_data = pd.DataFrame(
+        {"H1": Q1_arr,
+         "H2": Q2_arr,
+         "T1": T1_arr,
+         "T2": T2_arr,
+         "SP1": sp1,
+         "SP2": sp2},
+        index = np.linspace(1,ns,ns,dtype=int))
 
-plt.subplot(2, 1, 2)
-plt.step(t, u[:, 0], 'r-', label='H1')
-plt.step(t, u[:, 1], 'g-', label='H2')
-plt.legend()
+tcL_data.to_pickle('TCLab_MIMO_Control_multi_trans.pkl')
 
-plt.tight_layout()
-plt.show()
+
+# plt.figure(3)
+# plt.subplot(2, 1, 1)
+# plt.plot(t, y[:, 0], 'c-', label='T1')
+# plt.plot(t, y[:, 1], 'm-', label='T2')
+# plt.step(t, sp1, 'r--', label='SP1')
+# plt.step(t, sp2, 'g--', label='SP2')
+# plt.legend()
+
+# plt.subplot(2, 1, 2)
+# plt.step(t, u[:, 0], 'r-', label='H1')
+# plt.step(t, u[:, 1], 'g-', label='H2')
+# plt.legend()
+
+# plt.tight_layout()
+# plt.show()
 
 
 lab.LED(0)
