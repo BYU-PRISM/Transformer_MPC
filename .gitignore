@@ -130,6 +130,7 @@ dmypy.json
 
 
 Figures/
+figures/
 #*.eps
 #*.gif
 #*.jpg
