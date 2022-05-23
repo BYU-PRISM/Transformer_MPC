@@ -80,7 +80,7 @@ sp2_init = lab.T2
 # Setpoint Sequence
 sp1 = np.ones(ns) * sp1_init
 sp1[window*30-1:] = 40
-sp1[8*60:] = 32
+sp1[8*60:] = 35
 
 sp2 = np.ones(ns) * sp2_init
 sp2[window*30-1:] = 35
@@ -191,20 +191,6 @@ plt.show()
 lab.LED(0)
 lab.close()
 
-# generate mp4 from png figures in batches of 350
-if make_mp4:
-    images = []
-    iset = 0
-    for i in range(1,ns):
-        filename='./figures/plot_'+str(i+10000)+'.png'
-        images.append(imageio.imread(filename))
-        if ((i+1)%350)==0:
-            imageio.mimsave('results_'+str(iset)+'.mp4', images)
-            iset += 1
-            images = []
-    if images!=[]:
-        imageio.mimsave('results_'+str(iset)+'.mp4', images)
-    
 
 # Read data file
 tcL_data = pd.DataFrame(
@@ -217,4 +203,21 @@ tcL_data = pd.DataFrame(
         index = np.linspace(1,ns,ns,dtype=int))
 
 tcL_data.to_pickle('TCLab_MIMO_Control_multi_trans.pkl')
+
+# generate mp4 from png figures in batches of 350
+if make_mp4:
+    images = []
+    iset = 0
+    for i in range(window*30,ns):
+        filename='./figures/plot_'+str(i+10000)+'.png'
+        images.append(imageio.imread(filename))
+        if ((i+1)%10)==0:
+            imageio.mimsave('results_'+str(iset)+'.mp4', images)
+            iset += 1
+            images = []
+    if images!=[]:
+        imageio.mimsave('results_'+str(iset)+'.mp4', images)
+    
+
+
 
