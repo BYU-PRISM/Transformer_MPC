@@ -50,7 +50,7 @@ model_lstm_multi = load_model('MPC_MIMO_TCLab_multistep_LSTM_110000.h5')
 model_trans_multi = load_model('MPC_MIMO_TCLab_multistep_Trans_110000.h5')
 
 
-ns = 15 * 60  # Simulation Length, min * 60
+ns = 12 * 60  # Simulation Length, min * 60
 t = np.linspace(0, ns-1, ns)
 
 nu = 2
@@ -70,11 +70,11 @@ sp2_init = lab.T2
 # Setpoint Sequence
 sp1 = np.ones(ns) * sp1_init
 sp1[window*30-1:] = 40
-sp1[6*60:] = 32
+sp1[8*60:] = 32
 
 sp2 = np.ones(ns) * sp2_init
 sp2[window*30-1:] = 35
-sp2[8*60:] = 30
+sp2[6*60:] = 30
 
 
 # Controller setting
