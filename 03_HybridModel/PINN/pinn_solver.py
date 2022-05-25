@@ -67,6 +67,9 @@ class PINNSolver:
 
     def solve_with_tf_optimizer(self, optimizer=tf.keras.optimizers.Adam(), x=None, y=None, n_step=1001):
         """This method performs a gradient descent type optimization."""
+        best = 1e20
+        wait = 0
+        patience = 200
 
         @tf.function
         def train_step():
@@ -77,10 +80,17 @@ class PINNSolver:
             return loss
 
         for i in range(n_step):
-            loss = train_step()
+            loss = train_step().numpy()
 
-            self.current_loss = loss.numpy()
+            self.current_loss = loss
             self.callback()
+
+            wait += 1
+            if loss < best:
+                best = loss
+                wait = 0
+            if wait >= patience:
+                break
 
     def solve_with_scipy_optimizer(self, x, u, method='L-BFGS-B', **kwargs):
         """This method provides an interface to solve the learning problem

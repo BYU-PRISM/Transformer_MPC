@@ -61,7 +61,7 @@ class SPINN(PINNSolver):
     def residual_function(self, u, y_nn):
         """Residual of the ODE"""
         # y = self.s2.inverse_transform(y_nn)
-        y = (y_nn+1)/2 * (self.s2.data_max_[0]-self.s2.data_min_[0])+self.s2.data_min_[0]
+        y = (y_nn+1)/2 * (self.s2.data_max_-self.s2.data_min_)+self.s2.data_min_
 
         # res = y_tt + self.mu*y_t + self.k*y
         # y = self.model(self.Xs[:])
@@ -82,8 +82,8 @@ class SPINN(PINNSolver):
 
 
 # Load Data
-data = pd.read_pickle('open_loop_data_SISO.pkl')
-data = data[0:100]
+data = pd.read_pickle('open_loop_data_SISO-test.pkl')
+# data = data[0:100]
 
 window = 5
 
@@ -226,9 +226,9 @@ solver.solve_with_tf_optimizer(optim, X_train, Y_train, n_step=100)
 solver.solve_with_scipy_optimizer(X_train, Y_train, method='L-BFGS-B')
 # solver.solve_with_scipy_optimizer(x_physics, y_physics, method='SLSQP')
 
-yp = solver.model(X_train)
+yp = solver.model(X_val)
 y_pinn = s2.inverse_transform(yp)
 
 plt.plot(y_pinn)
-plt.plot(data["y"].to_numpy()[window:y_pinn.shape[0]], '-.')
+plt.plot(data["y"].to_numpy()[0:y_pinn.shape[0]], '-.')
 plt.show()
