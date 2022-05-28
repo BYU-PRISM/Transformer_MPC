@@ -52,15 +52,15 @@ s2 = model_params['yscale']
 window = model_params['window']
 
 # Load NN models (onestep prediction models)
-model_lstm_one = load_model('MPC_MIMO_TCLab_onestep_LSTM.h5')
-model_trans_one = load_model('MPC_MIMO_TCLab_onestep_Trans.h5')
+model_lstm_one = load_model('MPC_MIMO_TCLab_onestep_LSTM_110000.h5')
+model_trans_one = load_model('MPC_MIMO_TCLab_onestep_Trans_110000.h5')
 
 # Load NN models (multistep prediction models)
 model_lstm_multi = load_model('MPC_MIMO_TCLab_multistep_LSTM_110000.h5')
 model_trans_multi = load_model('MPC_MIMO_TCLab_multistep_Trans_110000.h5')
 
 
-ns = 12 * 60  # Simulation Length, min * 60
+ns = 60 * 60  # Simulation Length, min * 60
 t = np.linspace(0, ns-1, ns)
 
 nu = 2
@@ -79,12 +79,30 @@ sp2_init = lab.T2
 
 # Setpoint Sequence
 sp1 = np.ones(ns) * sp1_init
-sp1[window*30-1:] = 40
-sp1[8*60:] = 35
+sp1[window*30-1:] = 43
+sp1[10*60:] = 53
+sp1[16*60:] = 62
+sp1[25*60:] = 74
+sp1[36*60:] = 85
+sp1[47*60:] = 70
+sp1[58*60:] = 65
+sp1[75*60:] = 47
+sp1[93*60:] = 42
+sp1[108*60:] = 33
+
+
 
 sp2 = np.ones(ns) * sp2_init
 sp2[window*30-1:] = 35
-sp2[6*60:] = 30
+sp2[13*60:] = 40
+sp2[19*60:] = 59
+sp2[30*60:] = 65
+sp2[50*60:] = 52
+sp2[58*60:] = 45
+sp2[65*60:] = 65
+sp2[73*60:] = 35
+sp2[91*60:] = 39
+sp2[104*60:] = 31
 
 
 # Controller setting
@@ -94,7 +112,10 @@ maxmove = 1
 yp = np.zeros((ns, ny))
 yp_nn = np.zeros((ny, ))
 
-m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
+m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=0, model_one=model_lstm_one, model_multi=model_lstm_multi)
+# m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
+
+
 
 # Set initial fake data
 TCL_data = pd.read_pickle('initial_fake_data.pkl')
@@ -137,7 +158,7 @@ for i in range(30*window, ns):
     y = np.vstack((T1_arr,T2_arr)).T
     sp = np.array([sp1, sp2]).T
 
-    if i%10 == 0:
+    if i%30 == 0:
         
         u_window = u[-30*(window-1)-1::30]
         y_window = y[-30*(window-1)-1::30]
@@ -151,7 +172,7 @@ for i in range(30*window, ns):
         uhat = m.run(uhat, u_window, y_window, sp[i], ffwd)
         end = time.time()
         elapsed[i] = end - start
-        print(elapsed)
+        print(elapsed[i])
 
         lab.Q1(uhat[0][0])
         lab.Q2(uhat[0][1])
@@ -192,6 +213,8 @@ for i in range(30*window, ns):
         filename='./figures/plot_'+str(i+10000)+'.png'
         plt.savefig(filename)
 
+plt.savefig('TCLab_MIMO_Control_one_LSTM_20_20_1_1_1hr.png')
+plt.savefig('TCLab_MIMO_Control_one_LSTM_20_20_1_1_1hr.eps', format='eps')
 plt.show()
 
 lab.LED(0)
@@ -209,7 +232,7 @@ tcL_data = pd.DataFrame(
          "elapsed":elapsed},
         index = np.linspace(1,ns,ns,dtype=int))
 
-tcL_data.to_pickle('TCLab_MIMO_Control_multi_trans.pkl')
+tcL_data.to_pickle('TCLab_MIMO_Control_one_LSTM_20_20_1_1_1hr.pkl')
 
 # generate mp4 from png figures in batches of 350
 if make_mp4:
@@ -225,6 +248,5 @@ if make_mp4:
     if images!=[]:
         imageio.mimsave('results_'+str(iset)+'.mp4', images)
     
-
 
 

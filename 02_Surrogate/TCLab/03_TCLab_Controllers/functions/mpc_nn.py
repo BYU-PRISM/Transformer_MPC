@@ -74,16 +74,19 @@ class Mpc_nn:
         u_hat0 = u_hat0.reshape((-1, self.nu))
 
         ###########################
-        W_CV = np.array([50, 20]) # Adjust controller overshoot, high = faster catch SP
+        W_CV = np.array([20, 20]) # Adjust controller overshoot, high = faster catch SP
         W_MV = np.array([1, 1]) # low = faster catch SP
         #############################
         pred_nn = {}
         if self.multistep == 0:
+            # pred_nn["y_hat"] = Ytu
             pred_nn["y_hat"] = Ytu[self.window:]
+            # pred_nn["u_hat"] = Xtu
             pred_nn["u_hat"] = Xtu[self.window:, 0:self.nu]
+            
 
-            Obj = np.sum(W_CV.dot((pred_nn["y_hat"] - SP_hat) ** 2)) + np.sum(
-                W_MV.dot(((u_hat0[1:] - u_hat0[0:-1]) ** 2)))
+            Obj = np.sum(((pred_nn["y_hat"] - SP_hat + ffwd) ** 2).dot(W_CV)) + np.sum(
+                ((u_hat0[1:] - u_hat0[0:-1]) ** 2).dot(W_MV))
 
         else:
             pred_nn["y_hat_multi"] = Ytu
@@ -98,7 +101,7 @@ class Mpc_nn:
         # MPC calculation
 
         # u_hat0 = np.ones(self.M) * ui
-        start = time.time()
+        # start = time.time()
         bnds = np.array([[0, 100], [0, 100], [0, 100], [0, 100], [0, 100], [0, 100], [0, 100], [0, 100]])
         # solution = minimize(self.objective,ui,method='SLSQP', args=(yp,sp))
         # solution = minimize(self.MPCobj_nn, uhat, method='SLSQP',bounds=bnds,args=(u_window, y_window, sp),options={'eps': 1e-06, 'ftol': 1e-01})
@@ -111,9 +114,9 @@ class Mpc_nn:
         u = solution.x
         u = np.reshape(u, (4, 2))
 
-        end = time.time()
-        elapsed = end - start
-        print(elapsed)
+        # end = time.time()
+        # elapsed = end - start
+        # print(elapsed)
 
         return u
 

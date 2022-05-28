@@ -11,7 +11,8 @@ import time
 
 
 # Road data to check
-data = pd.read_pickle('TCLab_MIMO_Control_multi_trans.pkl')
+data = pd.read_pickle('TCLab_MIMO_Control_mul_trans_20_20_1_1_1hr.pkl')
+# data = data[0:3600]
 
 plt.figure(0)
 plt.subplot(2, 1, 1)
@@ -28,8 +29,8 @@ plt.legend(loc=2)
 
 plt.tight_layout()
 
-plt.savefig('TCLab_Control_multi_trans.eps', format='eps')
-plt.savefig('TCLab_Control_multi_trans.png')
+plt.savefig('TCLab_Control_multi_trans_1hr.eps', format='eps')
+plt.savefig('TCLab_Control_multi_trans_1hr.png')
 
 plt.show()
 
