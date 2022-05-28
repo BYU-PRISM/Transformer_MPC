@@ -149,12 +149,16 @@ class Mpc_nn:
                 # first 'system' output variable in the 'LSTM (Transformer)' input array
                 Ysq[i] = Xsq[i][(Xs.shape[1] - Ys.shape[1]):]
 
+            Ytu = self.s2.inverse_transform(Ysq)[self.window:]
+            Xtu = self.s1.inverse_transform(Xsq)[self.window:]
+
+
         else:
             Xin = Xsq.reshape((1, self.window + self.P, np.shape(Xsq)[1]))
             Ysq = self.model_multi(Xin)[0]
 
 
-        Ytu = self.s2.inverse_transform(Ysq)
-        Xtu = self.s1.inverse_transform(Xsq)
+            Ytu = self.s2.inverse_transform(Ysq)
+            Xtu = self.s1.inverse_transform(Xsq)
 
         return Ytu
