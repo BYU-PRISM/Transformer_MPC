@@ -37,8 +37,8 @@ s2 = model_params['yscale']
 window = model_params['window']
 
 # Load NN models (onestep prediction models)
-model_lstm_one = load_model(path + 'MPC_MIMO_FOPDT_onestep_LSTM.h5')
-model_trans_one = load_model(path + 'MPC_MIMO_FOPDT_onestep_Trans.h5')
+model_lstm_one = load_model(path + 'MPC_MIMO_FOPDT_onestep_LSTM_6000.h5')
+model_trans_one = load_model(path + 'MPC_MIMO_FOPDT_onestep_Trans_6000.h5')
 
 # Load NN models (multistep prediction models)
 model_lstm_multi = load_model(path + 'MPC_MIMO_FOPDT_multistep_LSTM_6000.h5')

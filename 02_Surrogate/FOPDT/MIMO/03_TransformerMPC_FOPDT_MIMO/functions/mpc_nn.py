@@ -76,10 +76,10 @@ class Mpc_nn:
         pred_nn = {}
         if self.multistep == 0:
             pred_nn["y_hat"] = Ytu[self.window:]
-            pred_nn["u_hat"] = Xtu[self.window:, 0:self.nu]
+            # pred_nn["u_hat"] = Xtu[self.window:, 0:self.nu]
 
-            Obj = np.sum(W_CV.dot((pred_nn["y_hat"] - SP_hat) ** 2)) + np.sum(
-                W_MV.dot(((u_hat0[1:] - u_hat0[0:-1]) ** 2)))
+            Obj = np.sum(((pred_nn["y_hat"] - SP_hat) ** 2).dot(W_CV)) + np.sum(
+                ((u_hat0[1:] - u_hat0[0:-1]) ** 2).dot(W_MV))
 
         else:
             pred_nn["y_hat_multi"] = Ytu
