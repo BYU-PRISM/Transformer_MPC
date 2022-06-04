@@ -18,8 +18,9 @@ class PINNSolver:
         self.iter = 0
         self.hello_pinn_info = 'Hello PINN!'
         self.is_pinn = is_pinn
-        self.loss1 = None
-        self.loss2 = None
+        self.loss1 = 0
+        self.loss2 = 0
+        self.loss3 = 0
 
     def get_residual_loss(self):
         return self.residual_function()
@@ -34,14 +35,15 @@ class PINNSolver:
 
         if self.is_pinn:
             # Compute residuals
-            residual_loss = self.get_residual_loss()
-            res_loss_mse = tf.reduce_mean(tf.square(residual_loss))
-            self.loss2 = res_loss_mse
+            residual_loss1, residual_loss2 = self.get_residual_loss()
+#             res_loss_mse = tf.reduce_mean(tf.square(residual_loss))
+            self.loss2 = tf.reduce_mean(tf.square(residual_loss1))
+            self.loss3 = tf.reduce_mean(tf.square(residual_loss2))
             # tf.print(self.loss2)
             # loss = self.loss2
 
             # loss = self.loss1 + self.loss2
-            loss = self.loss2
+            loss = self.loss2 + self.loss3
 
         else:
             loss = self.loss1
