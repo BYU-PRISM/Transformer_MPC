@@ -71,7 +71,7 @@ class PINNSolver:
         """This method performs a gradient descent type optimization."""
         best = 1e20
         wait = 0
-        patience = 200
+        patience = 50
 
         @tf.function
         def train_step():
