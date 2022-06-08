@@ -30,10 +30,8 @@ from keras.callbacks import EarlyStopping
 from keras.models import load_model
 
 import tclab
-# TCLab = tclab.setup(connected=False, speedup=2)
 
 lab = tclab.TCLab()
-# with TCLab() as lab:
 
 # Make an MP4 animation?
 make_mp4 = False
@@ -46,7 +44,7 @@ if make_mp4:
         pass
 
 # Load NN model parameters and MinMaxScaler
-model_params = load(open('model_param_MIMO.pkl', 'rb'))
+model_params = load(open('model_param_mimo_TCLab.pkl', 'rb'))
 s1 = model_params['Xscale']
 s2 = model_params['yscale']
 window = model_params['window']

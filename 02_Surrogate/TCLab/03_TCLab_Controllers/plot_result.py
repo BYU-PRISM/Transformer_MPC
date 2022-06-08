@@ -14,6 +14,7 @@ import time
 data = pd.read_pickle('TCLab_MIMO_Control_one_LSTM_20_20_1_1_1hr.pkl')
 # data = data[0:3600]
 
+plt.style.use('seaborn-bright')
 plt.figure(0)
 plt.subplot(2, 1, 1)
 plt.plot(data["T1"], 'c-', label='T1')
