@@ -11,7 +11,7 @@ import time
 
 
 # Road data to check
-data = pd.read_pickle('TCLab_MIMO_Control_one_LSTM_20_20_1_1_1hr.pkl')
+data = pd.read_pickle('TCLab_PINN_On_MIMO_Control_Multi_Trans_20_20_1_1_1hr.pkl')
 # data = data[0:3600]
 
 plt.figure(0)

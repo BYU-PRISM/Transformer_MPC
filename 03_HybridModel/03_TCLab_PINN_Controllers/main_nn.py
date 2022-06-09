@@ -54,8 +54,8 @@ model_lstm_one = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_on.h5')
 model_trans_one = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_on.h5')
 
 # Load NN models (multistep prediction models)
-model_lstm_multi = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_on.h5')
-model_trans_multi = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_on.h5')
+model_lstm_multi = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_off.h5')
+model_trans_multi = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_off.h5')
 
 
 ns = 60 * 60  # Simulation Length, min * 60
@@ -65,7 +65,7 @@ nu = 2
 ny = 2
 
 # Define horizons
-P = 20  # Prediction Horizon
+P = 10  # Prediction Horizon
 M = 4  # Control Horizon
 
 # Input Sequence
@@ -211,8 +211,8 @@ for i in range(30*window, ns):
         filename='./figures/plot_'+str(i+10000)+'.png'
         plt.savefig(filename)
 
-plt.savefig('TCLab_PINN_On_MIMO_Control_multi_Trans_20_20_1_1_1hr.png')
-plt.savefig('TCLab_PINN_On_MIMO_Control_multi_Trans_20_20_1_1_1hr.eps', format='eps')
+plt.savefig('TCLab_PINN_Off_MIMO_Control_multi_Trans_20_20_1_1_1hr.png')
+plt.savefig('TCLab_PINN_Off_MIMO_Control_multi_Trans_20_20_1_1_1hr.eps', format='eps')
 plt.show()
 
 lab.LED(0)
@@ -230,7 +230,7 @@ tcL_data = pd.DataFrame(
          "elapsed":elapsed},
         index = np.linspace(1,ns,ns,dtype=int))
 
-tcL_data.to_pickle('TCLab_PINN_On_MIMO_Control_Multi_Trans_20_20_1_1_1hr.pkl')
+tcL_data.to_pickle('TCLab_PINN_Off_MIMO_Control_Multi_Trans_20_20_1_1_1hr.pkl')
 
 # generate mp4 from png figures in batches of 350
 if make_mp4:
