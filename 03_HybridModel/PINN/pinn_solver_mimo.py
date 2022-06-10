@@ -43,7 +43,7 @@ class PINNSolver:
             # loss = self.loss2
 
             # loss = self.loss1 + self.loss2
-            loss = self.loss1 + self.loss2 + self.loss3
+            loss =  self.loss1 + self.loss2 + self.loss3
 
         else:
             loss = self.loss1

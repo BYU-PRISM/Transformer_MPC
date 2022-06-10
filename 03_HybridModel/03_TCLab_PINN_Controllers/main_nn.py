@@ -211,8 +211,8 @@ for i in range(30*window, ns):
         filename='./figures/plot_'+str(i+10000)+'.png'
         plt.savefig(filename)
 
-plt.savefig('TCLab_PINN_Off_MIMO_Control_multi_Trans_20_20_1_1_1hr.png')
-plt.savefig('TCLab_PINN_Off_MIMO_Control_multi_Trans_20_20_1_1_1hr.eps', format='eps')
+plt.savefig('TCLab_PINN_Off_Control_Multistep_Trans.png')
+plt.savefig('TCLab_PINN_Off_Control_Multistep_Trans.eps', format='eps')
 plt.show()
 
 lab.LED(0)
@@ -230,7 +230,8 @@ tcL_data = pd.DataFrame(
          "elapsed":elapsed},
         index = np.linspace(1,ns,ns,dtype=int))
 
-tcL_data.to_pickle('TCLab_PINN_Off_MIMO_Control_Multi_Trans_20_20_1_1_1hr.pkl')
+# tcL_data.to_pickle('TCLab_PINN_On_Control_Multistep_Trans.pkl')
+tcL_data.to_pickle('TCLab_PINN_Off_Control_Multistep_Trans.pkl')
 
 # generate mp4 from png figures in batches of 350
 if make_mp4:
