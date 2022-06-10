@@ -50,12 +50,14 @@ s2 = model_params['yscale']
 window = model_params['window']
 
 # Load NN models (onestep prediction models)
-model_lstm_one = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_on.h5')
-model_trans_one = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_on.h5')
+model_lstm_one_pinn_off = load_model('PINN_TCLab_mimo_onestep_LSTM_pinn_off.h5')
+model_lstm_one_pinn_on = load_model('PINN_TCLab_mimo_onestep_LSTM_pinn_on.h5')
+# model_trans_one = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_on.h5')
 
 # Load NN models (multistep prediction models)
-model_lstm_multi = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_off.h5')
-model_trans_multi = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_off.h5')
+# model_lstm_multi = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_off.h5')
+model_trans_multi_pinn_off = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_off.h5')
+model_trans_multi_pinn_on = load_model('PINN_TCLab_mimo_multistep_Trans_pinn_on.h5')
 
 
 ns = 60 * 60  # Simulation Length, min * 60
@@ -110,8 +112,8 @@ maxmove = 1
 yp = np.zeros((ns, ny))
 yp_nn = np.zeros((ny, ))
 
-# m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=0, model_one=model_lstm_one, model_multi=model_lstm_multi)
-m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=1, model_one=model_trans_one, model_multi=model_trans_multi)
+# m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=0, model_one=model_lstm_one_pinn_on, model_multi=model_trans_multi_pinn_on)
+m = Mpc_nn(window, nu, ny, P, M, s1, s2, multistep=0, model_one=model_lstm_one_pinn_off, model_multi=model_trans_multi_pinn_off)
 
 
 
@@ -156,7 +158,7 @@ for i in range(30*window, ns):
     y = np.vstack((T1_arr,T2_arr)).T
     sp = np.array([sp1, sp2]).T
 
-    if i%10 == 0:
+    if i%30 == 0:
         
         u_window = u[-30*(window-1)-1::30]
         y_window = y[-30*(window-1)-1::30]
@@ -211,8 +213,8 @@ for i in range(30*window, ns):
         filename='./figures/plot_'+str(i+10000)+'.png'
         plt.savefig(filename)
 
-plt.savefig('TCLab_PINN_Off_Control_Multistep_Trans.png')
-plt.savefig('TCLab_PINN_Off_Control_Multistep_Trans.eps', format='eps')
+# plt.savefig('TCLab_PINN_Off_Control_Multistep_Trans.png')
+# plt.savefig('TCLab_PINN_Off_Control_Multistep_Trans.eps', format='eps')
 plt.show()
 
 lab.LED(0)
@@ -231,7 +233,9 @@ tcL_data = pd.DataFrame(
         index = np.linspace(1,ns,ns,dtype=int))
 
 # tcL_data.to_pickle('TCLab_PINN_On_Control_Multistep_Trans.pkl')
-tcL_data.to_pickle('TCLab_PINN_Off_Control_Multistep_Trans.pkl')
+# tcL_data.to_pickle('TCLab_PINN_Off_Control_Multistep_Trans.pkl')
+# tcL_data.to_pickle('TCLab_PINN_On_Control_Onestep_LSTM.pkl')
+tcL_data.to_pickle('TCLab_PINN_Off_Control_Onestep_LSTM.pkl')
 
 # generate mp4 from png figures in batches of 350
 if make_mp4:

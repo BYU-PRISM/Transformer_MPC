@@ -29,8 +29,8 @@ plt.legend(loc=2)
 
 plt.tight_layout()
 
-plt.savefig('TCLab_Control_onestep_lstm_1hr.eps', format='eps')
-plt.savefig('TCLab_Control_onestep_lstm_1hr.png')
+# plt.savefig('TCLab_Control_onestep_lstm_1hr.eps', format='eps')
+# plt.savefig('TCLab_Control_onestep_lstm_1hr.png')
 
 plt.show()
 
