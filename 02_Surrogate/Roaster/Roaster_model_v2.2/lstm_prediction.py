@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 from scipy.optimize import Bounds
+import warnings
+
+warnings.filterwarnings('ignore')
 
 class lstm_pred():
     Ore_amps = []
@@ -49,14 +52,14 @@ def rto(past, Dof, tail, window, sp, v, s1, P, M, ctl, umeas, nCV):
     lower_bnds = np.concatenate([Ore_amps_lower, Sulfur_tph_lower, O2_scfm_lower])
     upper_bnds = np.concatenate([Ore_amps_upper, Sulfur_tph_upper, O2_scfm_upper])
     
-    bnds = Bounds(lower_bnds, upper_bnds)
-    
+    bnds = np.vstack([lower_bnds, upper_bnds]).T
+
     if ctl == 0:
         Dof = np.reshape(Dof, (1,3*M))[0]
         sol = predictions(Dof, Xt, window, sp, v, s1, P, M, umeas, nCV)
         
     else:
-        sol = minimize(predictions, Dof, args=(Xt, window, sp, v, s1, P, M, umeas, nCV), bounds = bnds, method='SLSQP', options={'ftol':1e-5, 'disp':True})
+        sol = minimize(predictions, Dof, args=(Xt, window, sp, v, s1, P, M, umeas, nCV), bounds = bnds, method='SLSQP', options={'ftol':1e-3, 'disp':True})
         
         lstm_pred.Ore_amps[0:M] = sol.x[0:M]
         lstm_pred.Sulfur_tph[0:M] = sol.x[M:2*M]
@@ -91,9 +94,10 @@ def predictions(Dof, Xt, window, sp, v, s1,  P, M, umeas, nCV):
         Xts[i][6:] = v.predict(Xin)
         Xtp[i-window] = Xts[i]
         # Ytp[i-window] = Xts[i][6:]
-        
-    Xtu = s1.inverse_transform(Xtp)
-    # Ytu = s2.inverse_transform(Ytp)
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore')
+        Xtu = s1.inverse_transform(Xtp)
         
     lstm_pred.Ore_amps = Xtu[:,0]
     lstm_pred.Sulfur_tph = Xtu[:,1]
@@ -120,12 +124,19 @@ def predictions(Dof, Xt, window, sp, v, s1,  P, M, umeas, nCV):
     
     # print(lstm_pred.Ore_amps)
     # obj = -1*lstm_pred.Ore_amps[-1] 
-    sp_P = np.zeros((P,nCV)) + sp
     
-    SSE = np.sum((sp_P[:,0] - lstm_pred.O2)**2 + (sp_P[:,1]-lstm_pred.CO2)**2 + (sp_P[:,2]-lstm_pred.SO2)**2)
+    pred_nn = np.array([lstm_pred.O2, lstm_pred.CO2, lstm_pred.SO2 ]).T
+    ssd_nn = np.array([delta_Ore_amps, delta_Sulfur_tph, delta_O2_scfm]).T
+
+    W_CV = np.array([1e-2, 1e-2, 1e-2])
+    W_MV = np.array([1e-2, 1e-2, 1e-3])
+
+    SSE = np.sum(((sp - pred_nn)**2).dot(W_CV))
+    SSD = np.sum(((ssd_nn)**2).dot(W_MV))
     
-    obj = 1e-4*SSE + 1e10*SSD_Sulfur_tph + 1e30*SSD_Ore_amps + 1e-30*SSD_O2_scfm
-    print(obj, SSE, SSD_Sulfur_tph)
+    obj = SSE + SSD 
+    print(obj)
+    print(pred_nn, ssd_nn)
     return obj
 
 
