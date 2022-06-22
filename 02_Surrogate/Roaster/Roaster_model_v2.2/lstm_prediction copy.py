@@ -38,17 +38,17 @@ def rto(past, Dof, tail, window, sp, v, s1, s2, P, M, ctl, umeas, nCV, nMV, mult
     Xt = np.array(Xt)
     Yt = np.array(Yt)
         
-    Dof1 = np.array(Xt[window:window+M, 0:nMV]).T
+    Dof1 = np.array(Xt[window:window+M, 1]).T
     
-    Ore_amps_upper = np.ones(M) * 200 
-    Ore_amps_lower = np.ones(M) * 0
+    Ore_amps_upper = np.ones(M) * 100 
+    Ore_amps_lower = np.ones(M) * 80
     Sulfur_tph_upper = np.ones(M) * 20
-    Sulfur_tph_lower = np.ones(M) * 0
+    Sulfur_tph_lower = np.ones(M) * 2
     O2_scfm_upper = np.ones(M) * 8000 
     O2_scfm_lower = np.ones(M) * 7000
     
-    lower_bnds = np.concatenate([Ore_amps_lower, Sulfur_tph_lower, O2_scfm_lower])
-    upper_bnds = np.concatenate([Ore_amps_upper, Sulfur_tph_upper, O2_scfm_upper])
+    lower_bnds = np.concatenate([Sulfur_tph_lower])
+    upper_bnds = np.concatenate([Sulfur_tph_upper])
     
     # lower_bnds = np.concatenate([Ore_amps_lower,Sulfur_tph_lower,O2_scfm_lower])
     # upper_bnds = np.concatenate([Ore_amps_upper,Sulfur_tph_upper,O2_scfm_upper])
@@ -61,13 +61,13 @@ def rto(past, Dof, tail, window, sp, v, s1, s2, P, M, ctl, umeas, nCV, nMV, mult
     else:
         sol = minimize(predictions, Dof1, bounds=bnds, args=(Xt, window, sp, v, s1, s2, P, M, umeas, nCV, nMV, multistep), method='SLSQP', options={'eps': 1e-03,'ftol':1e-3, 'disp':True})
         
-        lstm_pred.Ore_amps[window:window+M] = sol.x[0:M]
-        lstm_pred.Sulfur_tph[window:window+M] = sol.x[M:2*M]
-        lstm_pred.O2_scfm[window:window+M] = sol.x[2*M:3*M]
+        # lstm_pred.Ore_amps[0:M] = sol.x[0:M]
+        lstm_pred.Sulfur_tph[window:window+M] = sol.x[0:M]
+        # lstm_pred.O2_scfm[0:M] = sol.x[2*M:3*M]
         
-        lstm_pred.Ore_amps[window+M:] =  lstm_pred.Ore_amps[window+M-1]
+        # lstm_pred.Ore_amps[M:] =  lstm_pred.Ore_amps[M-1]
         lstm_pred.Sulfur_tph[window+M:] = lstm_pred.Sulfur_tph[window+M-1]
-        lstm_pred.O2_scfm[window+M:] = lstm_pred.O2_scfm[window+M-1]
+        # lstm_pred.O2_scfm[M:] = lstm_pred.O2_scfm[M-1]
       
     print(lstm_pred.Sulfur_tph)
     print(sol)
@@ -76,16 +76,16 @@ def rto(past, Dof, tail, window, sp, v, s1, s2, P, M, ctl, umeas, nCV, nMV, mult
 
 def predictions(Dof, Xt, window, sp, v, s1, s2, P, M, umeas, nCV, nMV, multistep):
     
-    Xt[window:window+M,0] = Dof[0:M]
-    Xt[window:window+M,1] = Dof[M:2*M]
-    Xt[window:window+M,2] = Dof[2*M:3*M]
+    # Xt[window:window+M,0] = Dof[0:M]
+    # Xt[window:window+M,1] = Dof[M:2*M]
+    # Xt[window:window+M,2] = Dof[2*M:3*M]
     
-    Xt[window+M:window+P,0] = Dof[M-1]
-    Xt[window+M:window+P,1] = Dof[2*M-1]
-    Xt[window+M:window+P,2] = Dof[3*M-1]
+    # Xt[window+M:window+P,0] = Dof[M-1]
+    # Xt[window+M:window+P,1] = Dof[2*M-1]
+    # Xt[window+M:window+P,2] = Dof[3*M-1]
 
-    # Xt[window:window+M,1] = Dof
-    # Xt[window+M:window+P,1] = Dof[-1]
+    Xt[window:window+M,1] = Dof
+    Xt[window+M:window+P,1] = Dof[-1]
     
     # Xts = s1.transform(Xt)
     Xsq = (Xt - s1.data_min_)/(s1.data_max_-s1.data_min_)*2-1
@@ -133,9 +133,9 @@ def predictions(Dof, Xt, window, sp, v, s1, s2, P, M, umeas, nCV, nMV, multistep
     lstm_pred.T_2 = Xtu[:,13]
     
     
-    MV = Xtu[window:window+M,0:nMV]
+    MV = Xtu[window:window+M,1].T
     
-    delta_MV = np.diff(MV, axis=0)
+    delta_MV = np.diff(MV)
 
     # delta_Ore_amps = np.diff(lstm_pred.Ore_amps)
     # delta_Sulfur_tph = np.diff(lstm_pred.Sulfur_tph)
@@ -148,14 +148,14 @@ def predictions(Dof, Xt, window, sp, v, s1, s2, P, M, umeas, nCV, nMV, multistep
     # print(lstm_pred.Ore_amps)
     # obj = -1*lstm_pred.Ore_amps[-1] 
     
-    pred_nn = np.array([lstm_pred.O2, lstm_pred.CO2, lstm_pred.SO2 ]).T
-    # pred_nn = lstm_pred.O2
+    # pred_nn = np.array([lstm_pred.O2, lstm_pred.CO2, lstm_pred.SO2 ]).T
+    pred_nn = lstm_pred.O2
     # ssd_nn = np.array([delta_Ore_amps, delta_Sulfur_tph, delta_O2_scfm]).T
 
-    W_CV = np.array([1e3, 1e2, 1e2])
-    W_MV = np.array([1e1, 1e1, 1e-2])
-    # W_CV = 1e0
-    # W_MV = 1e1
+    # W_CV = np.array([1e-2, 1e-2, 1e-2])
+    # W_MV = np.array([1e-2, 1e20])
+    W_CV = 1e0
+    W_MV = 1e1
 
     SSE = np.sum(((sp - pred_nn)**2).dot(W_CV))
     SSD = np.sum(((delta_MV)**2).dot(W_MV))

@@ -31,8 +31,8 @@ if make_mp4:
 # Load LSTM model and scaler
 P = 10 # Prediction Horizon
 M = 3 # Control Horizon
-nCV = 3 # number of CVs
-nMV = 3 # number of MVs
+nCV = 1 # number of CVs
+nMV = 1 # number of MVs
 
 # v = load_model('model150.h5')
 v = load_model('model_trans150.h5')
@@ -110,14 +110,9 @@ data_input = {
 
 
 sp = np.ones((nstep,nCV))
-sp[:,0] = 14 # O2
-sp[20:,0] = 15
-
-sp[:,1] = 45 # CO2
-sp[40:,1] = 44
-
-sp[:,2] = 6.2 # SO2
-sp[50:,2] = 6.1
+sp[:,0] = 17 # O2
+# sp[:,1] = 45 # CO2
+# sp[:,2] = 6 # SO2
 
 
 # unit conversions to tons/hr
@@ -340,11 +335,11 @@ for i in range(0, nstep):
     plt.subplot(3,1,2)
     plt.plot(t[1:i+1],CO2[0:i])
     plt.plot(t[i:i+P],pred.CO2[window:window+P], 'r--')
-    plt.plot(t[1:i+1],sp[0:i,1], "b--")
+    # plt.plot(t[1:i+1],sp[0:i,1], "b--")
     plt.subplot(3,1,3)
     plt.plot(t[1:i+1],SO2[0:i])
     plt.plot(t[i:i+P],pred.SO2[window:window+P], 'r--')
-    plt.plot(t[1:i+1],sp[0:i,2], "b--")
+    # plt.plot(t[1:i+1],sp[0:i,2], "b--")
     plt.draw()
     plt.pause(0.001)
     
