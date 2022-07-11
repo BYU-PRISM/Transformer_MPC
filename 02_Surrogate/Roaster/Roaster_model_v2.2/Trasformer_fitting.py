@@ -24,10 +24,10 @@ from tqdm.keras import TqdmCallback
 
 window = 6
 P = 10
-M = 3
+M = 6
 
 # %% Load training data
-file = 'Roaster_data_LHS150.csv'
+file = 'Roaster_data_random500.csv'
 train = pd.read_csv(file, index_col=0)
 
 train.O2[1:np.shape(train)[0]] = train.O2[0:np.shape(train)[0]-1]
@@ -124,7 +124,7 @@ es_trans = EarlyStopping(monitor='loss',mode='min',verbose=1,patience=10)
 # model_trans.save('model_trans150.h5')
 
 
-model_trans = load_model('model_trans150.h5')
+model_trans = load_model('model_trans15000.h5')
 
 # Verify the fit of the model
 Yp = model_trans.predict(X)

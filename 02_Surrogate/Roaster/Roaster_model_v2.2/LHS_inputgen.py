@@ -7,7 +7,7 @@ from smt.sampling_methods import Random
 
 
 # num = [50, 70, 90, 110] # number of steps (or, number of samples)
-num = [150]
+num = [100]
 for i in range(np.size(num)):
     print(i)
   
@@ -18,13 +18,13 @@ for i in range(np.size(num)):
     xlimits = np.array([[80, 100], [9, 13], [7000, 8000], [0.8, 0.9], [0.6, 0.7], [17, 18]]) # time step for input1, 2, 3 and input1, 2, and 3
     
     # Latin Hypercube Sampling
-    sampling = LHS(xlimits=xlimits)
-    x = sampling(num[i])
+    # sampling = LHS(xlimits=xlimits)
+    # x = sampling(num[i])
     
     
     # Random Sampling
-    # sampling = Random(xlimits=xlimits)
-    # x = sampling(num[i])
+    sampling = Random(xlimits=xlimits)
+    x = sampling(num[i])
     
     
     # Generating the time points for step changes 
@@ -34,8 +34,8 @@ for i in range(np.size(num)):
     
     print(x.shape)
     
-    # nstep = np.max(t_change)+30
-    nstep = 3000
+    nstep = np.max(t_change)+30
+    # nstep = 3000
     
       
     #%% input data
