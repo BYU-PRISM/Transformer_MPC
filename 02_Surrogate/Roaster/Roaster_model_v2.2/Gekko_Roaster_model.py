@@ -788,8 +788,8 @@ def process(input):
     m.solve(disp=False)
         
     #Convert Kelvin to Fahrenheit
-    output.T_1 = (np.array(T_reactor1.MODEL) - 273.15) * 9/5 + 32 # F
-    output.T_2 = (np.array(T_reactor2.MODEL) - 273.15) * 9/5 + 32 # F
+    output.T_1 = (np.array(T_reactor1) - 273.15) * 9/5 + 32 # F
+    output.T_2 = (np.array(T_reactor2) - 273.15) * 9/5 + 32 # F
     
     output.O2 = wp_og1["O2"]
     output.CO2 = wp_og1["CO2"]

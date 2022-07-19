@@ -32,7 +32,7 @@ if make_mp4:
 P = 10 # Prediction Horizon
 M = 6 # Control Horizon
 nCV = 1 # number of CVs
-nMV = 1 # number of MVs
+nMV = 3 # number of MVs
 
 # v = load_model('model150.h5')
 v = load_model('model_trans15000.h5')
@@ -57,7 +57,7 @@ tsim = nstep * 10 * 60 # [sec] = nstep * [min/step] * [sec/min]
 # Time interval
 tstep = 10 * 60 # sec
 
-maxmove = np.array([5, 0.2, 100]) # MV maximum movement limits
+maxmove = np.array([1, 0.2, 1]) # MV maximum movement limits
 d_mv = np.zeros(3) # temporary storage for delta MV of MPC output
 
 # data_input = {
@@ -222,8 +222,8 @@ for i in range(0, nstep):
     TCM[i] = output.TCM[-1]
     FeS2[i] = output.FeS2[-1]
     CaCO3[i] = output.CaCO3[-1]
-    T_1[i] = output.T_1
-    T_2[i] = output.T_2
+    T_1[i] = output.T_1[-1]
+    T_2[i] = output.T_2[-1]
     
 #%% Running LSTM model
     if i <= window:
@@ -264,9 +264,9 @@ for i in range(0, nstep):
                 }
         
         Dof = {
-                'Ore_amps' : [],#np.ones(M)*past["Ore_amps"][-1],
+                'Ore_amps' : np.ones(M)*past["Ore_amps"][-1],
                 'Sulfur_tph' : np.ones(M)*past["Sulfur_tph"][-1], 
-                'O2_scfm' : [],#np.ones(M)*past["O2_scfm"][-1],
+                'O2_scfm' : np.ones(M)*past["O2_scfm"][-1],
                 'Carbon_in' : [],
                 'Sulf_in' : [],
                 'CO3_in' : [],
@@ -281,9 +281,9 @@ for i in range(0, nstep):
               }
         
         tail = {
-                'Ore_amps' : np.ones(P) * past["Ore_amps"][-1],
+                'Ore_amps' : np.ones(P-M) * Dof["Ore_amps"][-1],
                 'Sulfur_tph' : np.ones(P-M) * Dof["Sulfur_tph"][-1],
-                'O2_scfm' : np.ones(P) * past["O2_scfm"][-1],
+                'O2_scfm' : np.ones(P-M) * Dof["O2_scfm"][-1],
                 'Carbon_in' : np.ones(P) * past["Carbon_in"][-1],
                 'Sulf_in' : np.ones(P) * past["Sulf_in"][-1],
                 'CO3_in' : np.ones(P) * past["CO3_in"][-1],
@@ -300,24 +300,41 @@ for i in range(0, nstep):
         # print('O2=',O2[i])
         # print('pred=',pred.O2[0])
         
+
+
+
         
         umeas = {
-            'O2': O2[i]-pred.O2[window+1],
-            'CO2': CO2[i]-pred.CO2[window+1],
-            'SO2': SO2[i] - pred.SO2[window+1],
-            'TCM': TCM[i] - pred.TCM[window+1],
-            'FeS2': FeS2[i] - pred.FeS2[window+1],
-            'CaCO3': CaCO3[i] - pred.CaCO3[window+1],
-            'T_1': T_1[i] - pred.T_1[window+1],
-            'T_2': T_2[i] - pred.T_2[window+1]            
+            'O2': 0,
+            'CO2': 0,
+            'SO2': 0,
+            'TCM': 0,
+            'FeS2': 0,
+            'CaCO3': 0,
+            'T_1': 0,
+            'T_2': 0            
             }
         
         
+        ctl=0
+        pred = lstm_prediction.rto(past, Dof, tail, window, sp[i,:], v, s1, s2, P, M, ctl, umeas, nCV, nMV,multistep)
+
         if i>20:
             ctl=1 # control switch 0 = off, 1 = on
         else:
             ctl=0
         
+        umeas = {
+            'O2': O2[i-1]-pred.O2[window],
+            'CO2': CO2[i-1]-pred.CO2[window],
+            'SO2': SO2[i-1] - pred.SO2[window],
+            'TCM': TCM[i-1] - pred.TCM[window],
+            'FeS2': FeS2[i-1] - pred.FeS2[window],
+            'CaCO3': CaCO3[i-1] - pred.CaCO3[window],
+            'T_1': T_1[i-1] - pred.T_1[window],
+            'T_2': T_2[i-1] - pred.T_2[window]            
+            }        
+
         # ctl = 1
         pred = lstm_prediction.rto(past, Dof, tail, window, sp[i,:], v, s1, s2, P, M, ctl, umeas, nCV, nMV,multistep)
         
@@ -365,15 +382,15 @@ for i in range(0, nstep):
     plt.figure(0)
     plt.subplot(3,1,1)
     plt.plot(t[1:i+1],O2[0:i])
-    plt.plot(t[i:i+P-1],pred.O2[window+1:window+P], 'r--')
+    plt.plot(t[i:i+P],pred.O2[window:window+P], 'r--')
     # plt.plot(t[1:i+1],sp[0:i,0], "b--")
     plt.subplot(3,1,2)
     plt.plot(t[1:i+1],CO2[0:i])
-    plt.plot(t[i:i+P-1],pred.CO2[window+1:window+P], 'r--')
+    plt.plot(t[i:i+P],pred.CO2[window:window+P], 'r--')
     # plt.plot(t[1:i+1],sp[0:i,1], "b--")
     plt.subplot(3,1,3)
     plt.plot(t[1:i+1],SO2[0:i], label='SO2')
-    plt.plot(t[i:i+P-1],pred.SO2[window+1:window+P], 'r--')
+    plt.plot(t[i:i+P],pred.SO2[window:window+P], 'r--')
     # plt.plot(t[1:i+1],sp[0:i,0], "b--")
     plt.legend()
     plt.draw()
@@ -382,18 +399,18 @@ for i in range(0, nstep):
     plt.figure(1)
     plt.subplot(3,1,1)
     plt.plot(t[1:i+1],TCM[0:i], label = 'TCM')
-    plt.plot(t[i:i+P-1],pred.TCM[window+1:window+P], 'r--')
+    plt.plot(t[i:i+P],pred.TCM[window:window+P], 'r--')
     plt.legend()
     # plt.yticks([])
     plt.subplot(3,1,2)
     plt.plot(t[1:i+1],FeS2[0:i], label = 'FeS2')
-    plt.plot(t[i:i+P-1],pred.FeS2[window+1:window+P], 'r--')
+    plt.plot(t[i:i+P],pred.FeS2[window:window+P], 'r--')
     # plt.plot(t[1:i+1],sp[0:i,0], "b--")
     plt.legend()
     # plt.yticks([])
     plt.subplot(3,1,3)
     plt.plot(t[1:i+1],CaCO3[0:i], label = 'CaCO3')
-    plt.plot(t[i:i+P-1],pred.CaCO3[window+1:window+P], 'r--')
+    plt.plot(t[i:i+P],pred.CaCO3[window:window+P], 'r--')
     plt.legend()
     # plt.yticks([])
     plt.draw()
@@ -404,28 +421,28 @@ for i in range(0, nstep):
     plt.figure(2)
     plt.subplot(2,1,1)
     plt.plot(t[1:i+1],T_1[0:i])
-    plt.plot(t[i:i+P-1],pred.T_1[window+1:window+P], 'r--')
+    plt.plot(t[i:i+P],pred.T_1[window:window+P], 'r--')
     plt.plot(t[1:i+1],sp[0:i,0], "b--")
     plt.subplot(2,1,2)
     plt.plot(t[1:i+1],T_2[0:i])
-    plt.plot(t[i:i+P-1],pred.T_2[window+1:window+P], 'r--')
+    plt.plot(t[i:i+P],pred.T_2[window:window+P], 'r--')
     plt.draw()
     # plt.pause(0.001)
     
     plt.figure(3)
     plt.subplot(3,1,1)
-    plt.plot(t[1:i+1],data_input["Ore_amps"][0:i], label = "Ore_amps")
-    plt.plot(t[i:i+P-1],pred.Ore_amps[window+1:window+P], 'r--') 
+    plt.step(t[1:i+1],data_input["Ore_amps"][0:i], label = "Ore_amps")
+    plt.step(t[i:i+P],pred.Ore_amps[window:window+P], 'r--') 
     plt.legend()
     # plt.yticks([])
     plt.subplot(3,1,2)
-    plt.plot(t[1:i+1],data_input["Sulfur_tph"][0:i], label = "Sulfur")
-    plt.plot(t[i:i+P-1],pred.Sulfur_tph[window+1:window+P], 'r--')
+    plt.step(t[1:i+1],data_input["Sulfur_tph"][0:i], label = "Sulfur")
+    plt.step(t[i:i+P],pred.Sulfur_tph[window:window+P], 'r--')
     plt.legend()
     # plt.yticks([])
     plt.subplot(3,1,3)
-    plt.plot(t[1:i+1],data_input["O2_scfm"][0:i], label = "O2")
-    plt.plot(t[i:i+P-1],pred.O2_scfm[window+1:window+P], 'r--')
+    plt.step(t[1:i+1],data_input["O2_scfm"][0:i], label = "O2")
+    plt.step(t[i:i+P],pred.O2_scfm[window:window+P], 'r--')
     plt.legend()
     # plt.yticks([])
     plt.draw()
