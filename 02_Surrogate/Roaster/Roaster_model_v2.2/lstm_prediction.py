@@ -46,14 +46,18 @@ def rto(past, Dof, tail, window, sp, v, s1, s2, P, M, ctl, umeas, nCV, nMV, mult
     Ore_amps_lower = np.ones(M) * 80
     Sulfur_tph_upper = np.ones(M) * 13
     Sulfur_tph_lower = np.ones(M) * 9
-    O2_scfm_upper = np.ones(M) * 7401 
-    O2_scfm_lower = np.ones(M) * 7400
+    # O2_scfm_upper = np.ones(M) * 7401 
+    # O2_scfm_lower = np.ones(M) * 7400
     
     # lower_bnds = np.concatenate([Sulfur_tph_lower])
     # upper_bnds = np.concatenate([Sulfur_tph_upper])
     
-    lower_bnds = np.concatenate([Ore_amps_lower,Sulfur_tph_lower,O2_scfm_lower])
-    upper_bnds = np.concatenate([Ore_amps_upper,Sulfur_tph_upper,O2_scfm_upper])
+    # lower_bnds = np.concatenate([Ore_amps_lower,Sulfur_tph_lower,O2_scfm_lower])
+    # upper_bnds = np.concatenate([Ore_amps_upper,Sulfur_tph_upper,O2_scfm_upper])
+
+    lower_bnds = np.concatenate([Ore_amps_lower,Sulfur_tph_lower])
+    upper_bnds = np.concatenate([Ore_amps_upper,Sulfur_tph_upper])
+
     
     bnds = np.vstack([lower_bnds, upper_bnds]).T
     Dof1 = np.reshape(Dof1, (1,-1))[0]
@@ -65,11 +69,11 @@ def rto(past, Dof, tail, window, sp, v, s1, s2, P, M, ctl, umeas, nCV, nMV, mult
         
         lstm_pred.Ore_amps[window:window+M] = sol.x[0:M]
         lstm_pred.Sulfur_tph[window:window+M] = sol.x[M:2*M]
-        lstm_pred.O2_scfm[window:window+M] = sol.x[2*M:3*M]
+        # lstm_pred.O2_scfm[window:window+M] = sol.x[2*M:3*M]
         
         lstm_pred.Ore_amps[window+M:] =  lstm_pred.Ore_amps[window+M-1]
         lstm_pred.Sulfur_tph[window+M:] = lstm_pred.Sulfur_tph[window+M-1]
-        lstm_pred.O2_scfm[window+M:] = lstm_pred.O2_scfm[window+M-1]
+        # lstm_pred.O2_scfm[window+M:] = lstm_pred.O2_scfm[window+M-1]
       
     # print(lstm_pred.Sulfur_tph)
     print(sol)
@@ -80,11 +84,11 @@ def predictions(Dof, Xt, window, sp, v, s1, s2, P, M, umeas, nCV, nMV, multistep
     
     Xt[window:window+M,0] = Dof[0:M]
     Xt[window:window+M,1] = Dof[M:2*M]
-    Xt[window:window+M,2] = Dof[2*M:3*M]
+    # Xt[window:window+M,2] = Dof[2*M:3*M]
     
     Xt[window+M:window+P,0] = Dof[M-1]
     Xt[window+M:window+P,1] = Dof[2*M-1]
-    Xt[window+M:window+P,2] = Dof[3*M-1]
+    # Xt[window+M:window+P,2] = Dof[3*M-1]
 
     # Xt[window:window+M,1] = Dof
     # Xt[window+M:window+P,1] = Dof[-1]
@@ -152,7 +156,7 @@ def predictions(Dof, Xt, window, sp, v, s1, s2, P, M, umeas, nCV, nMV, multistep
 
     delta_Ore_amps = np.diff(lstm_pred.Ore_amps[window:window+M])
     delta_Sulfur_tph = np.diff(lstm_pred.Sulfur_tph[window:window+M])
-    delta_O2_scfm = np.diff(lstm_pred.O2_scfm[window:window+M])
+    # delta_O2_scfm = np.diff(lstm_pred.O2_scfm[window:window+M])
     
     # SSD_Ore_amps = np.sum(delta_Ore_amps**2)
     # SSD_Sulfur_tph = np.sum(delta_Sulfur_tph**2)
@@ -161,13 +165,15 @@ def predictions(Dof, Xt, window, sp, v, s1, s2, P, M, umeas, nCV, nMV, multistep
     # print(lstm_pred.Ore_amps)
     # obj = -1*lstm_pred.Ore_amps[-1] 
     
-    # pred_nn = np.array([lstm_pred.SO2, lstm_pred.FeS2]).T
-    pred_nn = lstm_pred.T_1[window:] #+ umeas["T_1"]
-    ssd_nn = np.array([delta_Ore_amps, delta_Sulfur_tph, delta_O2_scfm]).T
+    pred_nn = np.array([lstm_pred.T_1[window:], lstm_pred.T_2[window:]]).T
+    # pred_nn = lstm_pred.T_1[window:] #+ umeas["T_1"]
+    # ssd_nn = np.array([delta_Ore_amps, delta_Sulfur_tph, delta_O2_scfm]).T
+    ssd_nn = np.array([delta_Ore_amps, delta_Sulfur_tph]).T
 
-    # W_CV = np.array([1e3, 1e5])
-    W_MV = np.array([1e1, 1e0, 1e3])
-    W_CV = 1e3
+    W_CV = np.array([1e3, 1e2])
+    # W_MV = np.array([1e1, 1e0, 1e3])
+    W_MV = np.array([1e3, 1e0])
+    # W_CV = 1e3
     # W_MV = 1e0
 
     SSE = np.sum(((sp - pred_nn)**2).dot(W_CV))

@@ -31,8 +31,8 @@ if make_mp4:
 # Load LSTM model and scaler
 P = 10 # Prediction Horizon
 M = 6 # Control Horizon
-nCV = 1 # number of CVs
-nMV = 3 # number of MVs
+nCV = 2 # number of CVs
+nMV = 2 # number of MVs
 
 # v = load_model('model150.h5')
 v = load_model('model_trans15000.h5')
@@ -48,7 +48,7 @@ window = model_params['window']
 # test = pd.read_csv('Roaster_data_random70.csv', index_col=0)
 
 # Number of steps for simulation5
-nstep = 100
+nstep = 120
 # temporary time array
 t = np.linspace(0,nstep+P,nstep+P+1)
 
@@ -120,8 +120,17 @@ sp = np.ones((nstep,nCV))
 # sp[40:,0] = 0.025
 
 
-sp[:,0] = 1025 # T1
-sp[40:,0] = 1023
+sp[:,0] = 1020 # T1
+sp[20:,0] = 1025
+sp[50:,0] = 1023
+sp[70:,0] = 1027
+sp[100:,0] = 1024
+
+sp[:,1] = 1036.4 # T2
+sp[20:,1] = 1037.7
+sp[50:,1] = 1037.2
+sp[70:,1] = 1038.3
+sp[100:,1] = 1037.5
 
 
 # unit conversions to tons/hr
@@ -203,7 +212,7 @@ for i in range(nplot):
     plt.ion()
 plt.show()
     
-for i in range(0, nstep):
+for i in range(0, nstep-1):
     print('i=',i)
     
     input.Sulf_in = data_tph["Sulf_in"][i]
@@ -340,7 +349,7 @@ for i in range(0, nstep):
         
         d_mv[0] = pred.Ore_amps[window] - pred.Ore_amps[window-1]
         d_mv[1] = pred.Sulfur_tph[window] - pred.Sulfur_tph[window-1]
-        d_mv[2] = pred.O2_scfm[window] - pred.O2_scfm[window-1]   
+        # d_mv[2] = pred.O2_scfm[window] - pred.O2_scfm[window-1]   
           
 
         if ctl == 1:
@@ -360,13 +369,13 @@ for i in range(0, nstep):
                 else:
                     data_input["Sulfur_tph"][i+1] = pred.Sulfur_tph[window-1]-maxmove[1]
 
-            if abs(d_mv[2]) < maxmove[2]:
-                data_input["O2_scfm"][i+1] = pred.O2_scfm[window]
-            else:
-                if d_mv[2] >= 0:
-                    data_input["O2_scfm"][i+1] = pred.O2_scfm[window-1]+maxmove[2]
-                else:
-                    data_input["O2_scfm"][i+1] = pred.O2_scfm[window-1]-maxmove[2]
+            # if abs(d_mv[2]) < maxmove[2]:
+            #     data_input["O2_scfm"][i+1] = pred.O2_scfm[window]
+            # else:
+            #     if d_mv[2] >= 0:
+            #         data_input["O2_scfm"][i+1] = pred.O2_scfm[window-1]+maxmove[2]
+            #     else:
+            #         data_input["O2_scfm"][i+1] = pred.O2_scfm[window-1]-maxmove[2]
             
                 
             data_tph["Ore_in"][i+1] = data_input["Ore_amps"][i+1] * 1.675786 + 208.270
@@ -399,18 +408,18 @@ for i in range(0, nstep):
     plt.figure(1)
     plt.subplot(3,1,1)
     plt.plot(t[1:i+1],TCM[0:i], label = 'TCM')
-    plt.plot(t[i:i+P],pred.TCM[window:window+P], 'r--')
+    # plt.plot(t[i:i+P],pred.TCM[window:window+P], 'r--')
     plt.legend()
     # plt.yticks([])
     plt.subplot(3,1,2)
     plt.plot(t[1:i+1],FeS2[0:i], label = 'FeS2')
-    plt.plot(t[i:i+P],pred.FeS2[window:window+P], 'r--')
+    # plt.plot(t[i:i+P],pred.FeS2[window:window+P], 'r--')
     # plt.plot(t[1:i+1],sp[0:i,0], "b--")
     plt.legend()
     # plt.yticks([])
     plt.subplot(3,1,3)
     plt.plot(t[1:i+1],CaCO3[0:i], label = 'CaCO3')
-    plt.plot(t[i:i+P],pred.CaCO3[window:window+P], 'r--')
+    # plt.plot(t[i:i+P],pred.CaCO3[window:window+P], 'r--')
     plt.legend()
     # plt.yticks([])
     plt.draw()
@@ -421,28 +430,29 @@ for i in range(0, nstep):
     plt.figure(2)
     plt.subplot(2,1,1)
     plt.plot(t[1:i+1],T_1[0:i])
-    plt.plot(t[i:i+P],pred.T_1[window:window+P], 'r--')
+    # plt.plot(t[i:i+P],pred.T_1[window:window+P], 'r--')
     plt.plot(t[1:i+1],sp[0:i,0], "b--")
     plt.subplot(2,1,2)
     plt.plot(t[1:i+1],T_2[0:i])
-    plt.plot(t[i:i+P],pred.T_2[window:window+P], 'r--')
+    # plt.plot(t[i:i+P],pred.T_2[window:window+P], 'r--')
+    plt.plot(t[1:i+1],sp[0:i,1], "b--")
     plt.draw()
     # plt.pause(0.001)
     
     plt.figure(3)
     plt.subplot(3,1,1)
     plt.step(t[1:i+1],data_input["Ore_amps"][0:i], label = "Ore_amps")
-    plt.step(t[i:i+P],pred.Ore_amps[window:window+P], 'r--') 
+    # plt.step(t[i:i+P],pred.Ore_amps[window:window+P], 'r--') 
     plt.legend()
     # plt.yticks([])
     plt.subplot(3,1,2)
     plt.step(t[1:i+1],data_input["Sulfur_tph"][0:i], label = "Sulfur")
-    plt.step(t[i:i+P],pred.Sulfur_tph[window:window+P], 'r--')
+    # plt.step(t[i:i+P],pred.Sulfur_tph[window:window+P], 'r--')
     plt.legend()
     # plt.yticks([])
     plt.subplot(3,1,3)
     plt.step(t[1:i+1],data_input["O2_scfm"][0:i], label = "O2")
-    plt.step(t[i:i+P],pred.O2_scfm[window:window+P], 'r--')
+    # plt.step(t[i:i+P],pred.O2_scfm[window:window+P], 'r--')
     plt.legend()
     # plt.yticks([])
     plt.draw()
@@ -454,6 +464,16 @@ for i in range(0, nstep):
     
     
 plt.show()
+
+Roaster_data = pd.DataFrame({"sp1":sp[:,0], 
+                             "sp2":sp[:,1],
+                             "T1":T_1, 
+                             "T2":T_2, 
+                             "Ore":data_input["Ore_amps"], 
+                             "Sulfur_prill":data_input["Sulfur_tph"]}, 
+                             index = np.linspace(1,nstep,nstep,dtype=int))
+                             
+Roaster_data.to_pickle('Roaster_MPC_result.pkl')
 
 # generate mp4 from png figures in batches of 350
 if make_mp4:
