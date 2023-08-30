@@ -9,9 +9,9 @@ https://user-images.githubusercontent.com/14016976/170841785-406caf62-722c-4b80-
 
 Folders:
 
-# 01_Emulation: LSTM MPC Emulation. Additional details are available with [PID emulation](https://apmonitor.com/pds/index.php/Main/LSTMAutomation) and [MPC emulation](https://apmonitor.com/do/index.php/Main/LSTMNetwork).
-# 02_Surrogate: Fluidized bed roaster for gold ore refinement. This is a case study in the paper to emulate MPC on a complex nonlinear process. 
-# 03_HybridModel: Hybrid physics-based and machine learned (Transformer) case study with the [Temperature Control Lab](https://apmonitor.com/heat.htm)
+1. 01_Emulation: LSTM MPC Emulation. Additional details are available with [PID emulation](https://apmonitor.com/pds/index.php/Main/LSTMAutomation) and [MPC emulation](https://apmonitor.com/do/index.php/Main/LSTMNetwork).
+2. 02_Surrogate: Fluidized bed roaster for gold ore refinement. This is a case study in the paper to emulate MPC on a complex nonlinear process. 
+3. 03_HybridModel: Hybrid physics-based and machine learned (Transformer) case study with the [Temperature Control Lab](https://apmonitor.com/heat.htm)
 
 For additional details, see:
 
