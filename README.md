@@ -9,11 +9,13 @@ https://user-images.githubusercontent.com/14016976/170841785-406caf62-722c-4b80-
 
 Folders:
 
-1. 01_Emulation: LSTM MPC Emulation. Additional details are available with [PID emulation](https://apmonitor.com/pds/index.php/Main/LSTMAutomation) and [MPC emulation](https://apmonitor.com/do/index.php/Main/LSTMNetwork).
-2. 02_Surrogate: Fluidized bed roaster for gold ore refinement. This is a case study in the paper to emulate MPC on a complex nonlinear process. 
-3. 03_HybridModel: Hybrid physics-based and machine learned (Transformer) case study with the [Temperature Control Lab](https://apmonitor.com/heat.htm)
+**01_Emulation**: LSTM MPC Emulation. Additional details are available with [PID emulation](https://apmonitor.com/pds/index.php/Main/LSTMAutomation) and [MPC emulation](https://apmonitor.com/do/index.php/Main/LSTMNetwork).
 
-For additional details, see:
+**02_Surrogate**: All case studies in the paper referenced below including the FOPDT, fluidized bed roaster for gold ore refinement, and Temperature Control Lab hardware. The fluidized is a case study in the paper to emulate MPC on a complex nonlinear process. For additional information see:
 
-Park, J., Babaei, M.R., Arce Munoz, S., Venkat, A.N., Hedengren, J.D., Simultaneous Multistep Transformer Architecture for Model Predictive Control, Computers & Chemical Engineering, 2023, DOI 10.1016/j.compchemeng.2023.108396 [Article](https://www.sciencedirect.com/science/article/abs/pii/S0098135423002661) | [Preprint](https://apm.byu.edu/prism/uploads/Members/2023_Transformer_MPC.pdf)
+  > Park, J., Babaei, M.R., Arce Munoz, S., Venkat, A.N., Hedengren, J.D., Simultaneous Multistep Transformer Architecture for Model Predictive Control, Computers & Chemical Engineering, 2023, DOI 10.1016/j.compchemeng.2023.108396 [Article](https://www.sciencedirect.com/science/article/abs/pii/S0098135423002661) | [Preprint](https://apm.byu.edu/prism/uploads/Members/2023_Transformer_MPC.pdf)
+
+**03_HybridModel**: Hybrid physics-based and machine learned (Transformer) case study with the [Temperature Control Lab](https://apmonitor.com/heat.htm).
+For additional details, see the [PhD Dissertation of Junho Park](https://scholarsarchive.byu.edu/etd/9759/).
+
 
