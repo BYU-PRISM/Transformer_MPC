@@ -40,7 +40,7 @@ SP2[140:] = 0.5
 
 # Plant model
 
-p=GEKKO(remote=True)
+p=GEKKO(remote=False)
 p.time = [0, 1]
 
 # Process Gain
@@ -71,7 +71,7 @@ p.options.IMODE = 4
 ##    MPC model (Gekko)
 ##----------------------------------
 P = 20 # Prediction Horizon
-m=GEKKO(remote=True)
+m=GEKKO(remote=False)
 m.time = np.linspace(0,P-1,P)
 
 # Process Gain

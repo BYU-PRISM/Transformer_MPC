@@ -124,7 +124,7 @@ for key in key_csv_wtpercent_in:
     
 
 #%% GEKKO
-m = GEKKO(remote=True)
+m = GEKKO(remote=False)
 m.time = [0,tstep]           # for animated version
 # m.time = np.linspace(0, tsim, nstep)
 
@@ -864,24 +864,24 @@ for key in keys_feedgas:
     H_Out2_offgas[key] = np.array(list(delH_Out2_offgas[key]))*(np.array(list(yog2[key])))
    
 # # %% plotting
-# t_minute = m.time/60
-
+# t_minute = np.array(m.time)/60
+#
 # plt.figure(1)
 # plt.subplot(3,1,1)
 # plt.plot(t_minute,data_input["Ore_amps"], color='tab:blue', linestyle='-', LineWidth=3,label='Ore_amps')
 # plt.ylabel('Amps')
 # plt.xlabel('time[min]')
-# plt.legend(loc='best') 
+# plt.legend(loc='best')
 # plt.subplot(3,1,2)
 # plt.plot(t_minute,data_input["Sulfur_tph"], color='tab:blue', linestyle='-', LineWidth=3,label='Sulfur_tph')
 # plt.ylabel('t/h')
 # plt.xlabel('time[min]')
-# plt.legend(loc='best') 
+# plt.legend(loc='best')
 # plt.subplot(3,1,3)
 # plt.plot(t_minute,data_input["O2_scfm"], color='tab:blue', linestyle='-', LineWidth=3,label='O2_scfm')
 # plt.ylabel('SCFM[kg/h]')
 # plt.xlabel('time[min]')
-# plt.legend(loc='best') 
+# plt.legend(loc='best')
 
 # plt.figure(2)
 # plt.subplot(3,1,1)
