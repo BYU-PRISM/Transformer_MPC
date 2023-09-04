@@ -10,7 +10,7 @@ from pickle import dump, load
 
 tf = 60 # fianl time
 P = 20 # Prediction Horizon
-m=GEKKO(remote=True)
+m=GEKKO(remote=False)
 m.time = np.linspace(0,P-1,P)
 
 # Process Gain
